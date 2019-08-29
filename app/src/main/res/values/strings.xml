@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">zdone</string>
+  <string name="app_slogan">The only way to get things done</string>
+  <string name="submit">submit</string>
+  <string name="enter_your_api_key">Enter your api key</string>
+  <string name="error_try_again">Try Again</string>
+  <string name="settings">Settings</string>
+  <string name="notif_channel_name">zdone_notification_channel</string>
+  <string name="notif_channel_description">Channel for that shows notifications regarding in-progress tasks</string>
+  <string name="task_item_name">%s (%d)</string>
 </resources>
