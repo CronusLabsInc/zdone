@@ -35,7 +35,7 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
         tasksListView.adapter = tasksListAdapter
         tasksListAdapter.onTaskCompletedListener = { task ->
             screen.taskCompleted(task)
-            setTimeProgress(timeComplete.progress + task.lengthMins)
+            setTimeProgress(timeComplete.progress)
         }
         tasksListAdapter.onTaskDeferredListener = { task ->
             screen.deferTask(task)
@@ -64,12 +64,14 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
         tasksListAdapter.tasksList = tasks.toMutableList()
     }
 
-    fun setTimeProgress(progress: Int) {
+    fun setTimeProgress(newProgress: Int) {
+        val prevProgress = timeComplete.progress
         timeComplete.animate()
                 .setDuration(500)
                 .setInterpolator(AccelerateDecelerateInterpolator())
                 .setUpdateListener {
-                    timeComplete.progress = (it.animatedFraction * progress).toInt()
+                    timeComplete.progress =
+                        prevProgress + (it.animatedFraction * (newProgress - prevProgress)).toInt()
                 }
                 .start()
     }
