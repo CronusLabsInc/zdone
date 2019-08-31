@@ -24,14 +24,15 @@ import com.wealthfront.magellan.BaseScreenView
 import kotlinx.android.synthetic.main.error.view.*
 import kotlinx.android.synthetic.main.home.view.*
 
-class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
+class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
+    BaseScreenView<HomeScreen>(context) {
 
     val tasksListAdapter: TasksListAdapter
 
     init {
         View.inflate(context, R.layout.home, this)
         tasksListView.layoutManager = LinearLayoutManager(context)
-        tasksListAdapter = TasksListAdapter()
+        tasksListAdapter = TasksListAdapter(largeFingersModeEnabled)
         tasksListView.adapter = tasksListAdapter
         tasksListAdapter.onTaskCompletedListener = { task ->
             screen.taskCompleted(task)
@@ -66,12 +67,12 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
 
     fun setTimeProgress(progress: Int) {
         timeComplete.animate()
-                .setDuration(500)
-                .setInterpolator(AccelerateDecelerateInterpolator())
-                .setUpdateListener {
-                    timeComplete.progress = (it.animatedFraction * progress).toInt()
-                }
-                .start()
+            .setDuration(500)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .setUpdateListener {
+                timeComplete.progress = (it.animatedFraction * progress).toInt()
+            }
+            .start()
     }
 
     fun finishedRefreshing() {
@@ -115,9 +116,10 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
         tasksListAdapter.setTasksProgressState(taskProgressState)
     }
 
-    class TasksListAdapter : ListAdapter<DisplayedTask, TasksListAdapter.TaskViewHolder>(
+    class TasksListAdapter(val largeFingersModeEnabled: Boolean) :
+        ListAdapter<DisplayedTask, TasksListAdapter.TaskViewHolder>(
             TaskDiffer()
-    ) {
+        ) {
 
         var tasksList: MutableList<DisplayedTask> = mutableListOf()
             set(value) {
@@ -130,22 +132,27 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
         var onTaskStartedListener: ((DisplayedTask) -> Unit)? = null
         var onTaskPausedListener: ((DisplayedTask) -> Unit)? = null
 
-        override fun getItemViewType(position: Int): Int {
-            return if (getItem(position).isSubtask) R.layout.subtask_item else R.layout.task_item
-        }
+        override fun getItemViewType(position: Int) =
+            when {
+                getItem(position).isSubtask && largeFingersModeEnabled -> R.layout.subtask_item_large_fingers
+                getItem(position).isSubtask -> R.layout.subtask_item
+                largeFingersModeEnabled -> R.layout.task_item_large_fingers
+                else -> R.layout.task_item
+            }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
             val itemView = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
             return TaskViewHolder(
-                    itemView,
-                    isSubtask = viewType == R.layout.subtask_item
+                itemView,
+                isSubtask = viewType == R.layout.subtask_item
             )
         }
 
         override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
             val task = getItem(position)
             val context = holder.taskNameView.context
-            holder.taskNameView.text = context.getString(R.string.task_item_name, task.name, task.lengthMins)
+            holder.taskNameView.text =
+                context.getString(R.string.task_item_name, task.name, task.lengthMins)
             holder.taskCompletedCheckbox.isChecked = false
             holder.taskCompletedCheckbox.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
@@ -177,20 +184,32 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
 
         private fun optimisticallyRemoveTask(task: DisplayedTask) {
             Handler(getMainLooper())
-                    .postDelayed({
-                        val location = tasksList.indexOf(task)
-                        var subtasksRemoved = 0
-                        if (!task.isSubtask) {
-                            subtasksRemoved = removeSubTasksForTaskAt(location)
-                        }
-                        tasksList.remove(task)
-                        notifyItemRangeRemoved(location, subtasksRemoved + 1)
-                        if (task.isSubtask && task.showDivider) {
-                            val upTask = tasksList.get(location - 1)
-                            tasksList.set(location - 1, DisplayedTask(upTask.id, upTask.subtaskId, upTask.name, upTask.service, upTask.lengthMins, upTask.isSubtask, showDivider = true, progressState = upTask.progressState))
-                            notifyItemChanged(location - 1)
-                        }
-                    }, 500)
+                .postDelayed({
+                    val location = tasksList.indexOf(task)
+                    var subtasksRemoved = 0
+                    if (!task.isSubtask) {
+                        subtasksRemoved = removeSubTasksForTaskAt(location)
+                    }
+                    tasksList.remove(task)
+                    notifyItemRangeRemoved(location, subtasksRemoved + 1)
+                    if (task.isSubtask && task.showDivider) {
+                        val upTask = tasksList.get(location - 1)
+                        tasksList.set(
+                            location - 1,
+                            DisplayedTask(
+                                upTask.id,
+                                upTask.subtaskId,
+                                upTask.name,
+                                upTask.service,
+                                upTask.lengthMins,
+                                upTask.isSubtask,
+                                showDivider = true,
+                                progressState = upTask.progressState
+                            )
+                        )
+                        notifyItemChanged(location - 1)
+                    }
+                }, 500)
         }
 
         private fun removeSubTasksForTaskAt(location: Int): Int {
@@ -254,7 +273,10 @@ class HomeView(context: Context?) : BaseScreenView<HomeScreen>(context) {
                 return oldItem.equals(newItem)
             }
 
-            override fun areContentsTheSame(oldItem: DisplayedTask, newItem: DisplayedTask): Boolean {
+            override fun areContentsTheSame(
+                oldItem: DisplayedTask,
+                newItem: DisplayedTask
+            ): Boolean {
                 return oldItem.name == newItem.name
             }
 
