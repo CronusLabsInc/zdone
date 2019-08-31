@@ -36,7 +36,7 @@ class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
         tasksListView.adapter = tasksListAdapter
         tasksListAdapter.onTaskCompletedListener = { task ->
             screen.taskCompleted(task)
-            setTimeProgress(timeComplete.progress + task.lengthMins)
+            setTimeProgress(timeComplete.progress)
         }
         tasksListAdapter.onTaskDeferredListener = { task ->
             screen.deferTask(task)
@@ -65,7 +65,8 @@ class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
         tasksListAdapter.tasksList = tasks.toMutableList()
     }
 
-    fun setTimeProgress(progress: Int) {
+    fun setTimeProgress(newProgress: Int) {
+        val prevProgress = timeComplete.progress
         timeComplete.animate()
             .setDuration(500)
             .setInterpolator(AccelerateDecelerateInterpolator())
