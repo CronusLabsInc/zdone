@@ -46,6 +46,9 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
 
     fun setWorkTime(defaultWorkTime: Int) {
         workTimeMinsEditText.setText(defaultWorkTime.toString())
+        if (workTimeMinsEditText.hasFocus()) {
+            workTimeMinsEditText.setSelection(workTimeMinsEditText.text.length)
+        }
     }
 
 }
