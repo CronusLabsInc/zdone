@@ -18,7 +18,12 @@ class HomeScreen @Inject constructor(
     internal var currentTimeProcess: TimeProgress? = null
 
     override fun createView(context: Context): HomeView {
-        return HomeView(context)
+        return HomeView(context, isLargeFingersModeEnabled(context))
+    }
+
+    private fun isLargeFingersModeEnabled(context: Context): Boolean {
+        return context.getSharedPreferences("zdone", Context.MODE_PRIVATE)
+            .getBoolean("large_fingers_mode_key", false)
     }
 
     override fun getTitle(context: Context?) = "zdone"
