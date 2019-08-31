@@ -71,7 +71,8 @@ class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
             .setDuration(500)
             .setInterpolator(AccelerateDecelerateInterpolator())
             .setUpdateListener {
-                timeComplete.progress = (it.animatedFraction * progress).toInt()
+                timeComplete.progress =
+                    prevProgress + (it.animatedFraction * (newProgress - prevProgress)).toInt()
             }
             .start()
     }
