@@ -15,6 +15,8 @@ class TestZdoneServiceImpl : ZdoneService {
         return Observable.just(
                 Tasks(
                         listOf(Task("abcd", "Anki", null, "toodledo", 15)),
-                        TimeProgress(15, 85)))
+                    TimeProgress(15, 85, 9999)
+                )
+        )
     }
 }
