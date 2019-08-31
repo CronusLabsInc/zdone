@@ -17,9 +17,15 @@ class SettingsScreen @Inject constructor(
 
     override fun createView(context: Context) = SettingsView(context)
 
-    override fun onShow(context: Context?) {
+    override fun onShow(context: Context) {
         view?.setApiKey(apiTokenManager.getToken())
         view?.setWorkTime(workTimeManager.getDefaultWorkTime())
+        view?.setLargeFingersMode(isLargeFingersModeEnabled(context))
+    }
+
+    private fun isLargeFingersModeEnabled(context: Context): Boolean {
+        return context.getSharedPreferences("zdone", Context.MODE_PRIVATE)
+            .getBoolean("large_fingers_mode_key", false)
     }
 
     fun updateApiKey(newApiKey: String) {
@@ -48,5 +54,14 @@ class SettingsScreen @Inject constructor(
             it.clear()
             it.push(ScreenInjector.get().loginScreen())
         }, NavigationType.SHOW)
+    }
+
+    fun setLargeFingersModeEnabled(enabled: Boolean) {
+        activity?.let {
+            it.getSharedPreferences("zdone", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("large_fingers_mode_key", enabled)
+                .apply()
+        }
     }
 }
