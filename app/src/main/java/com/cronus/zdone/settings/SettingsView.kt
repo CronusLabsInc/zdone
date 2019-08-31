@@ -35,6 +35,9 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
             }
         })
+        largeFingersModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            screen.setLargeFingersModeEnabled(isChecked)
+        }
         logoutButton.setOnClickListener {
             screen.logout()
         }
@@ -49,6 +52,10 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
         if (workTimeMinsEditText.hasFocus()) {
             workTimeMinsEditText.setSelection(workTimeMinsEditText.text.length)
         }
+    }
+
+    fun setLargeFingersMode(enabled: Boolean) {
+        largeFingersModeSwitch.isChecked = enabled
     }
 
 }
