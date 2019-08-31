@@ -83,18 +83,20 @@ class HomeScreen @Inject constructor(
             )
             val result = mutableListOf(topLevelTask)
             task.subtasks?.mapIndexed { index, subTask ->
-                result.add(
+                if (!subTask.isCompleted()) {
+                    result.add(
                         DisplayedTask(
-                                id = topLevelTask.id,
-                                subtaskId = subTask.id,
-                                name = subTask.name,
-                                service = subTask.service,
-                                lengthMins = 0,
-                                isSubtask = true,
-                                showDivider = index == task.subtasks.size - 1,
-                                progressState = taskProgressState // use parent progress state for subtasks
+                            id = topLevelTask.id,
+                            subtaskId = subTask.id,
+                            name = subTask.name,
+                            service = subTask.service,
+                            lengthMins = 0,
+                            isSubtask = true,
+                            showDivider = index == task.subtasks.size - 1,
+                            progressState = taskProgressState // use parent progress state for subtasks
                         )
-                )
+                    )
+                }
             }
             result
         }
