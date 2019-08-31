@@ -18,7 +18,7 @@ class TestTasksRepo : TasksRepository {
     }
 
     override fun getTimeData(): Observable<TimeProgress> {
-        return Observable.just(TimeProgress(15, 85))
+        return Observable.just(TimeProgress(15, 85, 9999))
     }
 
     override fun getTasks(): Observable<List<Task>> {

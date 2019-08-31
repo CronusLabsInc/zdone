@@ -28,7 +28,13 @@ class SettingsScreen @Inject constructor(
     }
 
     fun udpateWorkTime(newWorkTime: String) {
-        workTimeManager.setDefaultWorkTime(newWorkTime.toInt())
+        newWorkTime.toIntOrNull()?.let { newWorkInt ->
+            when {
+                newWorkInt < 0 -> view?.setWorkTime(0)
+                newWorkInt > 1440 -> view?.setWorkTime(1440)
+                else -> workTimeManager.setDefaultWorkTime(newWorkInt)
+            }
+        } ?: view?.setWorkTime(0)
     }
 
     override fun getTitle(context: Context): String {
