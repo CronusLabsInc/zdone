@@ -5,7 +5,6 @@ import com.cronus.zdone.api.TasksRepositoryImpl
 import com.cronus.zdone.api.model.TaskStatusUpdate
 import com.cronus.zdone.home.HomeScreen.DisplayedTask
 import com.cronus.zdone.home.HomeScreen.TaskProgressState.READY
-import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -17,48 +16,42 @@ import org.junit.Test
 
 class TasksRepositoryImplTest {
 
-    private val DEFAULT_WORK_TIME_MINS = 60
-
     @SpyK
     var zdoneService = TestZdoneServiceImpl()
 
     @MockK
     lateinit var appExecutors: AppExecutors
 
-    @MockK
-    lateinit var workTimeManager: WorkTimeManager
-
     lateinit var tasksRepository: TasksRepository
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        tasksRepository = TasksRepositoryImpl(appExecutors, zdoneService, workTimeManager)
         every { appExecutors.network() } returns Schedulers.trampoline()
         every { appExecutors.mainThread() } returns Schedulers.trampoline()
-        every { workTimeManager.getDefaultWorkTime() } returns DEFAULT_WORK_TIME_MINS
+        tasksRepository = TasksRepositoryImpl(appExecutors, zdoneService)
     }
 
     @Test
     fun getTasks_testCache() {
-        tasksRepository.getTasks()
+        tasksRepository.getTasks().subscribe()
 
-        verify(exactly = 1) { zdoneService.getTaskInfo(DEFAULT_WORK_TIME_MINS) }
+        verify(exactly = 1) { zdoneService.getTaskInfo() }
 
-        tasksRepository.getTasks() // returns cached data
+        tasksRepository.getTasks().subscribe() // returns cached data
 
-        verify(exactly = 1) { zdoneService.getTaskInfo(DEFAULT_WORK_TIME_MINS) }
+        verify(exactly = 1) { zdoneService.getTaskInfo() }
     }
 
     @Test
     fun getTimeData_testCache() {
-        tasksRepository.getTimeData()
+        tasksRepository.getTimeData().subscribe()
 
-        verify(exactly = 1) { zdoneService.getTaskInfo(DEFAULT_WORK_TIME_MINS) }
+        verify(exactly = 1) { zdoneService.getTaskInfo() }
 
-        tasksRepository.getTimeData() // returns cached data
+        tasksRepository.getTimeData().subscribe() // returns cached data
 
-        verify(exactly = 1) { zdoneService.getTaskInfo(DEFAULT_WORK_TIME_MINS) }
+        verify(exactly = 1) { zdoneService.getTaskInfo() }
     }
 
     @Test
@@ -87,12 +80,10 @@ class TasksRepositoryImplTest {
 
     @Test
     fun refreshTaskData() {
-        val initialResponse = tasksRepository.getTasks() // populate cache
-        val refreshResponse = tasksRepository.refreshTaskData()
+        tasksRepository.getTasks().subscribe() // populate cache
+        tasksRepository.refreshTaskData()
 
-        verify(exactly = 2) { zdoneService.getTaskInfo(DEFAULT_WORK_TIME_MINS) } // needs to hit service twice
-        assertThat(initialResponse.blockingIterable().count()).isEqualTo(1)
-        assertThat(refreshResponse.blockingIterable().count()).isEqualTo(1) // should not return cached values
+        verify(exactly = 2) { zdoneService.getTaskInfo() } // needs to hit service twice
     }
 
 

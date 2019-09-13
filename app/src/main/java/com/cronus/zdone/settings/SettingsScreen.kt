@@ -7,19 +7,23 @@ import com.cronus.zdone.api.ApiTokenManager
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.dagger.ScreenInjector
 import com.wealthfront.magellan.NavigationType
-import com.wealthfront.magellan.Screen
+import com.wealthfront.magellan.rx2.RxScreen
 import javax.inject.Inject
 
 class SettingsScreen @Inject constructor(
-        val apiTokenManager: ApiTokenManager,
-        val workTimeManager: WorkTimeManager,
-        val tasksRepository: TasksRepository) : Screen<SettingsView>() {
+    val apiTokenManager: ApiTokenManager,
+    val workTimeManager: WorkTimeManager,
+    val tasksRepository: TasksRepository
+) : RxScreen<SettingsView>() {
 
     override fun createView(context: Context) = SettingsView(context)
 
-    override fun onShow(context: Context) {
+    override fun onSubscribe(context: Context) {
         view?.setApiKey(apiTokenManager.getToken())
-        view?.setWorkTime(workTimeManager.getDefaultWorkTime())
+        view?.showLoadingWorkTime()
+        autoDispose(workTimeManager.currentWorkTime.subscribe {
+            view?.setWorkTime(it)
+        })
         view?.setLargeFingersMode(isLargeFingersModeEnabled(context))
     }
 
@@ -34,13 +38,14 @@ class SettingsScreen @Inject constructor(
     }
 
     fun udpateWorkTime(newWorkTime: String) {
-        newWorkTime.toIntOrNull()?.let { newWorkInt ->
-            when {
-                newWorkInt < 0 -> view?.setWorkTime(0)
-                newWorkInt > 1440 -> view?.setWorkTime(1440)
-                else -> workTimeManager.setDefaultWorkTime(newWorkInt)
-            }
-        } ?: view?.setWorkTime(0)
+        val finalWorkTime = when {
+            newWorkTime.toIntOrNull() == null -> 0
+            newWorkTime.toInt() < 0 -> 0
+            newWorkTime.toInt() > 1440 -> 1440
+            else -> newWorkTime.toInt()
+        }
+        view?.setWorkTime(finalWorkTime)
+        workTimeManager.setMaxWorkMins(finalWorkTime)
     }
 
     override fun getTitle(context: Context): String {

@@ -30,12 +30,13 @@
         <EditText
             android:id="@+id/workTimeMinsEditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="number" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Default Time For Work (mins)" />
+            android:text="Max Work Time per Day (mins)" />
 
     </LinearLayout>
 

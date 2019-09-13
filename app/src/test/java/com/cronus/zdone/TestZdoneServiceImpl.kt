@@ -3,20 +3,23 @@ package com.cronus.zdone
 import com.cronus.zdone.api.ZdoneService
 import com.cronus.zdone.api.model.*
 import io.reactivex.Observable
-import retrofit2.http.Query
 
 class TestZdoneServiceImpl : ZdoneService {
 
-    override fun updateTask(taskStatus: TaskStatusUpdate): Observable<UpdateTaskResponse> {
-        return Observable.just(UpdateTaskResponse("success"))
+    override fun updateTask(taskStatus: TaskStatusUpdate): Observable<UpdateDataResponse> {
+        return Observable.just(UpdateDataResponse("success"))
     }
 
-    override fun getTaskInfo(@Query(value = "time") workTimeLimit: Int): Observable<Tasks> {
+    override fun getTaskInfo(): Observable<Tasks> {
         return Observable.just(
-                Tasks(
-                        listOf(Task("abcd", "Anki", null, "toodledo", 15)),
-                    TimeProgress(15, 85, 9999)
-                )
+            Tasks(
+                listOf(Task("abcd", "Anki", null, "toodledo", 15)),
+                TimeProgress(15, 85, 9999)
+            )
         )
+    }
+
+    override fun updateWorkTime(body: Map<String, Int>): Observable<UpdateDataResponse> {
+        return Observable.just(UpdateDataResponse("success"))
     }
 }

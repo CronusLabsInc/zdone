@@ -1,7 +1,7 @@
 package com.cronus.zdone
 
 import com.cronus.zdone.api.TasksRepository
-import com.cronus.zdone.api.model.UpdateTaskResponse
+import com.cronus.zdone.api.model.UpdateDataResponse
 import com.cronus.zdone.home.HomeScreen
 import com.cronus.zdone.home.HomeScreen.DisplayedTask
 import com.cronus.zdone.home.HomeScreen.TaskProgressState.*
@@ -55,7 +55,7 @@ class HomeScreenTest {
     @Test
     fun taskCompleted_onFailure() {
         every { testRepo.taskCompleted(any()) } returns Observable.just(
-                UpdateTaskResponse(
+            UpdateDataResponse(
                         "failure",
                         "500 internal server error"
                 )
@@ -65,8 +65,7 @@ class HomeScreenTest {
 
         verify { testRepo.taskCompleted(task) }
         // check task data is refreshed
-        verify { testRepo.getTasks() }
-        verify { testRepo.getTimeData() }
+        verify { testRepo.refreshTaskData() }
     }
 
     @Test
@@ -125,14 +124,15 @@ class HomeScreenTest {
     fun deferTask_failure() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         every { testRepo.deferTask(any()) } returns Observable.just(
-                UpdateTaskResponse(
+            UpdateDataResponse(
                         "error",
                         "500 internal server error"
                 )
         )
         homeScreen.deferTask(task)
 
-        verify { homeView.setTasks(any()) } // should re-request task data on failure
+        verify { testRepo.deferTask(task) }
+        verify { testRepo.refreshTaskData() } // should re-request task data on failure
     }
 
     @Test
