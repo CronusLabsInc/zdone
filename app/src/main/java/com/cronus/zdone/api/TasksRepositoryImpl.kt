@@ -26,12 +26,12 @@ class TasksRepositoryImpl @Inject constructor(
         observers.add(observer)
         observer.setCancellable { observers.remove(observer) }
 
-        cachedData?.let {
-            val timeElapsed = System.nanoTime() - lastRequestTime
-            if (timeElapsed < CACHE_REFRESH_TIME) {
-                observer.onNext(it)
-            }
-        } ?: refreshTaskData()
+        val timeElapsed = System.nanoTime() - lastRequestTime
+        if (timeElapsed < CACHE_REFRESH_TIME) {
+            cachedData?.let { observer.onNext(it) }
+        } else {
+            refreshTaskData()
+        }
     })
 
     override fun refreshTaskData() {
