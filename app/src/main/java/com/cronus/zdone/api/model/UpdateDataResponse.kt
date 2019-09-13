@@ -2,7 +2,7 @@ package com.cronus.zdone.api.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class UpdateTaskResponse(
+data class UpdateDataResponse(
         @JsonProperty("result")
         val result: String,
         @JsonProperty("reason", required = false)

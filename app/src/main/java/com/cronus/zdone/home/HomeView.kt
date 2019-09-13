@@ -61,6 +61,7 @@ class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
 
     fun setTasks(tasks: List<DisplayedTask>) {
         loading.hide()
+        tasksSwipeRefresh.isRefreshing = false
         errorView.visibility = View.GONE
         tasksListAdapter.tasksList = tasks.toMutableList()
     }
@@ -75,10 +76,6 @@ class HomeView(context: Context?, largeFingersModeEnabled: Boolean) :
                     prevProgress + (it.animatedFraction * (newProgress - prevProgress)).toInt()
             }
             .start()
-    }
-
-    fun finishedRefreshing() {
-        tasksSwipeRefresh.isRefreshing = false
     }
 
     fun showError(message: String?) {

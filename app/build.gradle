@@ -14,11 +14,11 @@ android {
         jvmTarget = "1.8"
     }
     defaultConfig {
-        applicationId "com.wclausen.zdone"
+        applicationId "com.cronus.zdone"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 3
-        versionName "0.1.1"
+        versionCode 1
+        versionName "0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -66,4 +66,6 @@ dependencies {
     testImplementation 'com.google.truth:truth:1.0'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 }

@@ -115,7 +115,7 @@ class HomeScreen @Inject constructor(
                                 activity?.let {
                                     Toast.makeText(it, "Failed to mark ${task.name} as completed, reloading tasks...", Toast.LENGTH_SHORT).show()
                                 }
-                                requestTaskData() // update task to re-show task marked as completed
+                                refreshTaskData() // update task to re-show task marked as completed
                             }
                         })
         updateInProgressTask(task)
@@ -154,7 +154,7 @@ class HomeScreen @Inject constructor(
                                 activity?.let {
                                     Toast.makeText(it, "Failed to defer ${task.name}, reloading tasks...", Toast.LENGTH_SHORT).show()
                                 }
-                                requestTaskData() // update task list
+                                refreshTaskData() // update task list
                             }
                         }, {
                             view?.showError(it.message)
@@ -163,21 +163,13 @@ class HomeScreen @Inject constructor(
     }
 
     fun refreshTaskData() {
-        autoDispose(
-                tasksRepo.refreshTaskData()
-                        .subscribe({
-                            displayTasks(it)
-                            view?.finishedRefreshing()
-                        }, {
-                            view?.showError(it.message)
-                        }))
+        tasksRepo.refreshTaskData()
     }
 
     fun startTask(task: DisplayedTask) {
         view?.setInProgressTask(task)
         inProgressTask = task
         taskTimerManager.startTimer(task)
-
     }
 
     fun pauseTask(task: DisplayedTask) {

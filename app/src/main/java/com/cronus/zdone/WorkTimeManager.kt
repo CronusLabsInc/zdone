@@ -1,27 +1,23 @@
 package com.cronus.zdone
 
-import android.content.Context
-import android.content.SharedPreferences
+import com.cronus.zdone.api.TasksRepository
+import io.reactivex.Observable
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class WorkTimeManager @Inject constructor(context: Context) {
+class WorkTimeManager @Inject constructor(val tasksRepository: TasksRepository) {
 
-    val sharedPreferences: SharedPreferences
+    val currentWorkTime: Observable<Int>
 
     init {
-        sharedPreferences = context.getSharedPreferences("zdone", Context.MODE_PRIVATE)
+        currentWorkTime = tasksRepository.getTimeData().map {
+            it.maximumMinutesPerDay
+        }
     }
 
-    fun setDefaultWorkTime(timeInMins: Int) {
-        sharedPreferences.edit()
-                .putInt("defaultWorkTime", timeInMins)
-                .apply()
-    }
-
-    fun getDefaultWorkTime(): Int {
-        return sharedPreferences.getInt("defaultWorkTime", 9999)
+    fun setMaxWorkMins(maxWorkMins: Int) {
+        tasksRepository.updateWorkTime(maxWorkMins)
     }
 
 

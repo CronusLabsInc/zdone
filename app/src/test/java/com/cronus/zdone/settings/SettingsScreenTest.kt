@@ -26,6 +26,7 @@ class SettingsScreenTest {
         settingsScreen.udpateWorkTime("")
 
         verify { view.setWorkTime(0) }
+        verify { workTimeManager.setMaxWorkMins(0) }
     }
 
     @Test
@@ -33,6 +34,7 @@ class SettingsScreenTest {
         settingsScreen.udpateWorkTime("14401")
 
         verify { view.setWorkTime(1440) }
+        verify { workTimeManager.setMaxWorkMins(1440) }
     }
 
     @Test
@@ -40,6 +42,7 @@ class SettingsScreenTest {
         settingsScreen.udpateWorkTime("-1")
 
         verify { view.setWorkTime(0) }
+        verify { workTimeManager.setMaxWorkMins(0) }
     }
 
     @Test
@@ -47,14 +50,15 @@ class SettingsScreenTest {
         settingsScreen.udpateWorkTime("abcd")
 
         verify { view.setWorkTime(0) }
+        verify { workTimeManager.setMaxWorkMins(0) }
     }
 
     @Test
     fun updateWorkTime_validInput() {
         settingsScreen.udpateWorkTime("250")
 
-        verify(exactly = 0) { view.setWorkTime(any()) }
-        verify { workTimeManager.setDefaultWorkTime(250) }
+        verify { view.setWorkTime(250) }
+        verify { workTimeManager.setMaxWorkMins(250) }
     }
 
 
