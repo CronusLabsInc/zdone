@@ -18,20 +18,21 @@ class TasksRepositoryImpl @Inject constructor(
 
     private val CACHE_REFRESH_TIME = 2 * 60 * 1_000_000_000L // 2 mins in nanoseconds
 
-    var cachedData: Tasks? = null
-    var requestId: String? = null
-    var lastRequestTime: Long = 0
-    var observers = Collections.synchronizedSet(HashSet<ObservableEmitter<Tasks>>())
-    var dataStream = observe(Observable.create<Tasks> { observer ->
+    private var cachedData: Tasks? = null
+    private var requestId: String? = null
+    private var lastRequestTime: Long = 0
+    var observers: MutableSet<ObservableEmitter<Tasks>> =
+        Collections.synchronizedSet(HashSet<ObservableEmitter<Tasks>>())
+    private val dataStream = observe(Observable.create<Tasks> { observer ->
         observers.add(observer)
         observer.setCancellable { observers.remove(observer) }
 
-        cachedData?.let {
-            val timeElapsed = System.nanoTime() - lastRequestTime
-            if (timeElapsed < CACHE_REFRESH_TIME) {
-                observer.onNext(it)
-            }
-        } ?: refreshTaskData()
+        val timeElapsed = System.nanoTime() - lastRequestTime
+        if (timeElapsed < CACHE_REFRESH_TIME) {
+            cachedData?.let { observer.onNext(it) }
+        } else {
+            refreshTaskData()
+        }
     })
 
     override fun refreshTaskData() {
