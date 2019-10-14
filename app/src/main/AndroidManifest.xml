@@ -5,6 +5,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- add below permission for local dev server -->
+    <!-- android:usesCleartextTraffic="true" -->
     <application
         android:name=".ZdoneApplication"
         android:allowBackup="true"
