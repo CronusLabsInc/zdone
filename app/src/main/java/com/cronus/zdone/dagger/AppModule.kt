@@ -39,6 +39,7 @@ class AppModule {
     @Provides
     fun retrofit(loggingInterceptor: HttpLoggingInterceptor, authInterceptor: AuthInterceptor): Retrofit {
         return Retrofit.Builder()
+                //use http://10.0.2.2:5000/ for local dev server
                 .baseUrl("https://www.zdone.co/")
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(JacksonConverterFactory.create())
