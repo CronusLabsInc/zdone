@@ -2,10 +2,10 @@ package com.cronus.zdone
 
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.home.HomeScreen
-import com.cronus.zdone.home.HomeScreen.DisplayedTask
-import com.cronus.zdone.home.HomeScreen.TaskProgressState.*
-import com.cronus.zdone.home.HomeView
+import com.cronus.zdone.home.TasksScreen
+import com.cronus.zdone.home.TasksScreen.DisplayedTask
+import com.cronus.zdone.home.TasksScreen.TaskProgressState.*
+import com.cronus.zdone.home.TasksView
 import com.cronus.zdone.timer.TaskTimerManager
 import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
@@ -17,37 +17,37 @@ import io.reactivex.Observable
 import org.junit.Before
 import org.junit.Test
 
-class HomeScreenTest {
+class TasksScreenTest {
 
     @RelaxedMockK
     lateinit var taskTimerManager: TaskTimerManager
     @RelaxedMockK
-    lateinit var homeView: HomeView
+    lateinit var tasksView: TasksView
 
     val testRepo = spyk<TasksRepository>(TestTasksRepo())
 
-    lateinit var homeScreen: HomeScreen
+    lateinit var tasksScreen: TasksScreen
 
     @Before
     fun setup() {
         MockKAnnotations.init(this, relaxUnitFun = true)
-        homeScreen = HomeScreen(testRepo, taskTimerManager)
-        homeScreen.view = homeView
+        tasksScreen = TasksScreen(testRepo, taskTimerManager)
+        tasksScreen.view = tasksView
     }
 
     @Test
     fun requestTaskData() {
-        homeScreen.requestTaskData()
-        val displayedTasks = homeScreen.getDisplayedTasks(testRepo.getTasks().blockingFirst())
+        tasksScreen.requestTaskData()
+        val displayedTasks = tasksScreen.getDisplayedTasks(testRepo.getTasks().blockingFirst())
 
-        verify { homeView.setTasks(eq(displayedTasks)) }
-        verify { homeView.setTimeProgress(85) }
+        verify { tasksView.setTasks(eq(displayedTasks)) }
+        verify { tasksView.setTimeProgress(85) }
     }
 
     @Test
     fun taskCompleted_noInProgressTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        homeScreen.taskCompleted(task)
+        tasksScreen.taskCompleted(task)
 
         verify { testRepo.taskCompleted(task) }
     }
@@ -61,7 +61,7 @@ class HomeScreenTest {
                 )
         )
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        homeScreen.taskCompleted(task)
+        tasksScreen.taskCompleted(task)
 
         verify { testRepo.taskCompleted(task) }
         // check task data is refreshed
@@ -71,51 +71,51 @@ class HomeScreenTest {
     @Test
     fun taskCompleted_withInProgressTask_completedOtherTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
-        homeScreen.inProgressTask =
+        tasksScreen.inProgressTask =
                 DisplayedTask("other_id", null, "Writing", "habitica", 30, false, true, IN_PROGRESS)
-        homeScreen.taskCompleted(task)
+        tasksScreen.taskCompleted(task)
 
         verify { testRepo.taskCompleted(task) }
-        assertThat(homeScreen.inProgressTask).isNotNull()
+        assertThat(tasksScreen.inProgressTask).isNotNull()
     }
 
     @Test
     fun taskCompleted_completedInProgressTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
-        homeScreen.inProgressTask = task
-        homeScreen.taskCompleted(task)
+        tasksScreen.inProgressTask = task
+        tasksScreen.taskCompleted(task)
 
         verify { testRepo.taskCompleted(task) }
-        assertThat(homeScreen.inProgressTask).isNull()
+        assertThat(tasksScreen.inProgressTask).isNull()
         verify { taskTimerManager.cancelTimer() }
-        verify { homeView.setTasksProgressState(READY) }
+        verify { tasksView.setTasksProgressState(READY) }
     }
 
     @Test
     fun startTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        homeScreen.startTask(task)
+        tasksScreen.startTask(task)
 
-        assertThat(homeScreen.inProgressTask).isEqualTo(task)
+        assertThat(tasksScreen.inProgressTask).isEqualTo(task)
         verify { taskTimerManager.startTimer(eq(task)) }
-        verify { homeView.setInProgressTask(eq(task)) }
+        verify { tasksView.setInProgressTask(eq(task)) }
     }
 
     @Test
     fun pauseTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        homeScreen.inProgressTask = task
-        homeScreen.pauseTask(task)
+        tasksScreen.inProgressTask = task
+        tasksScreen.pauseTask(task)
 
-        assertThat(homeScreen.inProgressTask).isNull()
+        assertThat(tasksScreen.inProgressTask).isNull()
         verify { taskTimerManager.cancelTimer() }
-        verify { homeView.setTasksProgressState(READY) }
+        verify { tasksView.setTasksProgressState(READY) }
     }
 
     @Test
     fun deferTask_success() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        homeScreen.deferTask(task)
+        tasksScreen.deferTask(task)
 
         verify { testRepo.deferTask(task) }
     }
@@ -129,7 +129,7 @@ class HomeScreenTest {
                         "500 internal server error"
                 )
         )
-        homeScreen.deferTask(task)
+        tasksScreen.deferTask(task)
 
         verify { testRepo.deferTask(task) }
         verify { testRepo.refreshTaskData() } // should re-request task data on failure
@@ -139,9 +139,9 @@ class HomeScreenTest {
     fun deferTask_apiError() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         every { testRepo.deferTask(any()) } returns Observable.error(Exception("boom"))
-        homeScreen.deferTask(task)
+        tasksScreen.deferTask(task)
 
-        verify { homeView.showError("boom") } // should re-request task data on failure
+        verify { tasksView.showError("boom") } // should re-request task data on failure
     }
 
 }

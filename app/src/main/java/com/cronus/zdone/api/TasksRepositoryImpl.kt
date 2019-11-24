@@ -2,7 +2,8 @@ package com.cronus.zdone.api
 
 import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.api.model.*
-import com.cronus.zdone.home.HomeScreen
+import com.cronus.zdone.home.TaskShowerStrategyProvider
+import com.cronus.zdone.home.TasksScreen
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import org.joda.time.DateTime
@@ -15,7 +16,8 @@ import kotlin.collections.HashSet
 @Singleton
 class TasksRepositoryImpl @Inject constructor(
     var appExecutors: AppExecutors,
-    var zdoneService: ZdoneService
+    var zdoneService: ZdoneService,
+    val taskShowingStrategyProvider: TaskShowerStrategyProvider
 ) : TasksRepository {
 
     private val CACHE_REFRESH_TIME = 2 * 60 * 1_000L // 2 mins in millis
@@ -67,33 +69,39 @@ class TasksRepositoryImpl @Inject constructor(
 
     override fun getTasks(): Observable<List<Task>> {
         return dataStream.map { it.tasksToDo }
+            .map {
+                taskShowingStrategyProvider.getStrategy()
+                    .selectTasksToShow(it)
+            }
     }
 
     override fun getTimeData(): Observable<TimeProgress> {
         return dataStream.map { it.timeProgress }
     }
 
-    override fun taskCompleted(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun taskCompleted(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
-                    id = task.id,
-                    subtaskId = task.subtaskId,
+                    id = taskUpdateInfo.id,
+                    subtaskId = taskUpdateInfo.subtaskId,
                     update = "complete",
-                    service = task.service
+                    service = taskUpdateInfo.service,
+                    duration_seconds = taskUpdateInfo.duration_seconds
                 )
             )
         )
     }
 
-    override fun deferTask(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun deferTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
-                    id = task.id,
-                    subtaskId = task.subtaskId,
+                    id = taskUpdateInfo.id,
+                    subtaskId = taskUpdateInfo.subtaskId,
                     update = "defer",
-                    service = task.service
+                    service = taskUpdateInfo.service,
+                    duration_seconds = taskUpdateInfo.duration_seconds
                 )
             )
         )
@@ -108,7 +116,7 @@ class TasksRepositoryImpl @Inject constructor(
         cachedData = null
     }
 
-    override fun taskIsPreviousDay(task: HomeScreen.DisplayedTask): Boolean {
+    override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
         return DateTime(lastRequestTime, DateTimeZone.getDefault()).dayOfYear().get() < DateTime.now().dayOfYear().get()
     }
 
