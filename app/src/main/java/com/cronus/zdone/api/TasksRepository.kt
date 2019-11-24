@@ -3,16 +3,16 @@ package com.cronus.zdone.api
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.home.HomeScreen
+import com.cronus.zdone.home.TasksScreen
 import io.reactivex.Observable
 
 interface TasksRepository {
 
     fun getTasks(): Observable<List<Task>>
 
-    fun taskCompleted(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse>
+    fun taskCompleted(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse>
 
-    fun deferTask(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse>
+    fun deferTask(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse>
 
     fun getTimeData(): Observable<TimeProgress>
 
@@ -22,6 +22,6 @@ interface TasksRepository {
 
     fun updateWorkTime(maxWorkMins: Int)
 
-    fun taskIsPreviousDay(task: HomeScreen.DisplayedTask): Boolean
+    fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean
 
 }

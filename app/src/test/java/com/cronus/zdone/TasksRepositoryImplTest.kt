@@ -3,8 +3,8 @@ package com.cronus.zdone
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.TasksRepositoryImpl
 import com.cronus.zdone.api.model.TaskStatusUpdate
-import com.cronus.zdone.home.HomeScreen.DisplayedTask
-import com.cronus.zdone.home.HomeScreen.TaskProgressState.READY
+import com.cronus.zdone.home.TasksScreen.DisplayedTask
+import com.cronus.zdone.home.TasksScreen.TaskProgressState.READY
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

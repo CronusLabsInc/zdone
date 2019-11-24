@@ -5,7 +5,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.cronus.zdone.home.HomeScreen
+import com.cronus.zdone.home.TasksScreen
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,7 +23,7 @@ class TaskTimerManager @Inject constructor(context: Context) {
         }
     }
 
-    fun startTimer(task: HomeScreen.DisplayedTask) {
+    fun startTimer(task: TasksScreen.DisplayedTask) {
         val taskTimerWorkData = workDataOf(
                 TaskTimerWorker.TASK_NAME_KEY to task.name
         )

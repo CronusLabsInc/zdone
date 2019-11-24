@@ -2,7 +2,7 @@ package com.cronus.zdone.api
 
 import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.api.model.*
-import com.cronus.zdone.home.HomeScreen
+import com.cronus.zdone.home.TasksScreen
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import org.joda.time.DateTime
@@ -73,7 +73,7 @@ class TasksRepositoryImpl @Inject constructor(
         return dataStream.map { it.timeProgress }
     }
 
-    override fun taskCompleted(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun taskCompleted(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
@@ -86,7 +86,7 @@ class TasksRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun deferTask(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun deferTask(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
@@ -108,7 +108,7 @@ class TasksRepositoryImpl @Inject constructor(
         cachedData = null
     }
 
-    override fun taskIsPreviousDay(task: HomeScreen.DisplayedTask): Boolean {
+    override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
         return DateTime(lastRequestTime, DateTimeZone.getDefault()).dayOfYear().get() < DateTime.now().dayOfYear().get()
     }
 

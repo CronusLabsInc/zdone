@@ -8,4 +8,6 @@
   <string name="notif_channel_name">zdone_notification_channel</string>
   <string name="notif_channel_description">Channel for that shows notifications regarding in-progress tasks</string>
   <string name="task_item_name">%s (%d)</string>
+    <string name="tasks">Tasks</string>
+    <string name="timer">Timer</string>
 </resources>

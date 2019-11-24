@@ -4,18 +4,18 @@ import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.home.HomeScreen
+import com.cronus.zdone.home.TasksScreen
 import io.reactivex.Observable
 
 class TestTasksRepo : TasksRepository {
 
     override fun updateWorkTime(maxWorkMins: Int) {}
 
-    override fun deferTask(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun deferTask(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))
     }
 
-    override fun taskCompleted(task: HomeScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun taskCompleted(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))
     }
 
