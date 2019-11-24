@@ -11,7 +11,7 @@
       android:layout_height="wrap_content"
       android:background="@color/colorPrimary"
       app:tabTextColor="@android:color/white"
-      app:tabIndicatorHeight="2dp"
+      app:tabIndicatorHeight="3dp"
       app:tabIndicatorColor="@color/colorAccent">
 
   </com.google.android.material.tabs.TabLayout>

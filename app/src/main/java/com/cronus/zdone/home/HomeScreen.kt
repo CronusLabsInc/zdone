@@ -3,6 +3,7 @@ package com.cronus.zdone.home
 import android.content.Context
 import android.view.Menu
 import com.cronus.zdone.R
+import com.cronus.zdone.timer.TimerScreen
 import com.wealthfront.magellan.Screen
 import com.wealthfront.magellan.ScreenGroup
 import javax.inject.Inject

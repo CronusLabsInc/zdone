@@ -10,9 +10,9 @@ interface TasksRepository {
 
     fun getTasks(): Observable<List<Task>>
 
-    fun taskCompleted(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse>
+    fun taskCompleted(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse>
 
-    fun deferTask(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse>
+    fun deferTask(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse>
 
     fun getTimeData(): Observable<TimeProgress>
 
@@ -23,5 +23,12 @@ interface TasksRepository {
     fun updateWorkTime(maxWorkMins: Int)
 
     fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean
+
+    data class TaskUpdateInfo(
+        val id: String,
+        val subtaskId: String?,
+        val service: String,
+        val duration_seconds: Long?
+    )
 
 }

@@ -1,10 +1,7 @@
 package com.cronus.zdone
 
 import com.cronus.zdone.api.TasksRepository
-import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.home.TaskShowerStrategyProvider
-import com.cronus.zdone.home.TaskShowingStrategy
 import com.cronus.zdone.home.TasksScreen
 import com.cronus.zdone.home.TasksScreen.DisplayedTask
 import com.cronus.zdone.home.TasksScreen.TaskProgressState.*
@@ -26,8 +23,6 @@ class TasksScreenTest {
     lateinit var taskTimerManager: TaskTimerManager
     @RelaxedMockK
     lateinit var tasksView: TasksView
-    @RelaxedMockK
-    lateinit var taskShowerStrategyProvider: TaskShowerStrategyProvider
 
     val testRepo = spyk<TasksRepository>(TestTasksRepo())
 
@@ -36,14 +31,8 @@ class TasksScreenTest {
     @Before
     fun setup() {
         MockKAnnotations.init(this, relaxUnitFun = true)
-        tasksScreen = TasksScreen(testRepo, taskTimerManager, taskShowerStrategyProvider)
+        tasksScreen = TasksScreen(testRepo, taskTimerManager)
         tasksScreen.view = tasksView
-        every { taskShowerStrategyProvider.getStrategy() } returns
-                object : TaskShowingStrategy {
-                    override fun selectTasksToShow(tasks: List<Task>): List<Task> {
-                        return tasks
-                    }
-                }
     }
 
     @Test

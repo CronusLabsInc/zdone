@@ -5,6 +5,8 @@
   <dimen name="smallText">16sp</dimen>
   <dimen name="normalText">20sp</dimen>
   <dimen name="largeText">24sp</dimen>
+  <dimen name="extraLargeText">28sp</dimen>
+  <dimen name="hugeText">32sp</dimen>
   <dimen name="smallPadding">8dp</dimen>
   <dimen name="hugePadding">32dp</dimen>
   <dimen name="largePadding">24dp</dimen>

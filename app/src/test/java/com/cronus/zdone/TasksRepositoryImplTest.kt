@@ -2,12 +2,16 @@ package com.cronus.zdone
 
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.TasksRepositoryImpl
+import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TaskStatusUpdate
+import com.cronus.zdone.home.TaskShowerStrategyProvider
+import com.cronus.zdone.home.TaskShowingStrategy
 import com.cronus.zdone.home.TasksScreen.DisplayedTask
 import com.cronus.zdone.home.TasksScreen.TaskProgressState.READY
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.verify
 import io.reactivex.schedulers.Schedulers
@@ -18,7 +22,8 @@ class TasksRepositoryImplTest {
 
     @SpyK
     var zdoneService = TestZdoneServiceImpl()
-
+    @RelaxedMockK
+    lateinit var taskShowerStrategyProvider: TaskShowerStrategyProvider
     @MockK
     lateinit var appExecutors: AppExecutors
 
@@ -29,7 +34,14 @@ class TasksRepositoryImplTest {
         MockKAnnotations.init(this)
         every { appExecutors.network() } returns Schedulers.trampoline()
         every { appExecutors.mainThread() } returns Schedulers.trampoline()
-        tasksRepository = TasksRepositoryImpl(appExecutors, zdoneService)
+        tasksRepository =
+            TasksRepositoryImpl(appExecutors, zdoneService, taskShowerStrategyProvider)
+        every { taskShowerStrategyProvider.getStrategy() } returns
+                object : TaskShowingStrategy {
+                    override fun selectTasksToShow(tasks: List<Task>): List<Task> {
+                        return tasks
+                    }
+                }
     }
 
     @Test

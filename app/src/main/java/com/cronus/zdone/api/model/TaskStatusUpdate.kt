@@ -8,4 +8,6 @@ data class TaskStatusUpdate(
         val id: String,
         @field:JsonProperty("subtask_id") var subtaskId: String? = null,
         val update: String,
-        val service: String)
+        val service: String,
+        val duration_seconds: Long?
+)

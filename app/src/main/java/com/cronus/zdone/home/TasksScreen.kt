@@ -12,8 +12,7 @@ import javax.inject.Inject
 
 class TasksScreen @Inject constructor(
     val tasksRepo: TasksRepository,
-    val taskTimerManager: TaskTimerManager,
-    val taskShowingStrategyProvider: TaskShowerStrategyProvider
+    val taskTimerManager: TaskTimerManager
 ) : RxScreen<TasksView>() {
 
     internal var inProgressTask: DisplayedTask? = null
@@ -37,10 +36,6 @@ class TasksScreen @Inject constructor(
     internal fun requestTaskData() {
         autoDispose(
             tasksRepo.getTasks()
-                .map {
-                    taskShowingStrategyProvider.getStrategy()
-                        .selectTasksToShow(it)
-                }
                 .subscribe({
                     displayTasks(it)
                 }, {
@@ -120,7 +115,14 @@ class TasksScreen @Inject constructor(
         }
         updateTimeProgress(task)
         autoDispose(
-            tasksRepo.taskCompleted(task)
+            tasksRepo.taskCompleted(
+                TasksRepository.TaskUpdateInfo(
+                    task.id,
+                    task.subtaskId,
+                    task.service,
+                    null
+                )
+            )
                 .subscribe { response ->
                     if (response.result == "success") {
                         activity?.let {
@@ -175,7 +177,14 @@ class TasksScreen @Inject constructor(
             return
         }
         autoDispose(
-            tasksRepo.deferTask(task)
+            tasksRepo.deferTask(
+                TasksRepository.TaskUpdateInfo(
+                    task.id,
+                    task.subtaskId,
+                    task.service,
+                    null
+                )
+            )
                 .subscribe({ response ->
                     if (response.result == "success") {
                         activity?.let {
