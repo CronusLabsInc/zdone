@@ -12,7 +12,10 @@ import com.wealthfront.magellan.rx2.RxScreen
 import javax.inject.Inject
 
 class HomeScreen @Inject constructor(
-        val tasksRepo: TasksRepository, val taskTimerManager: TaskTimerManager) : RxScreen<HomeView>() {
+    val tasksRepo: TasksRepository,
+    val taskTimerManager: TaskTimerManager,
+    val taskShowingStrategyProvider: TaskShowerStrategyProvider
+) : RxScreen<HomeView>() {
 
     internal var inProgressTask: DisplayedTask? = null
     internal var currentTimeProcess: TimeProgress? = null
@@ -38,22 +41,26 @@ class HomeScreen @Inject constructor(
 
     internal fun requestTaskData() {
         autoDispose(
-                tasksRepo.getTasks()
-                        .subscribe({
-                            displayTasks(it)
-                        }, {
-                            view?.showError(it.message)
-                        }))
+            tasksRepo.getTasks()
+                .map { taskShowingStrategyProvider.getStrategy()
+                        .selectTasksToShow(it) }
+                .subscribe({
+                    displayTasks(it)
+                }, {
+                    view?.showError(it.message)
+                })
+        )
         autoDispose(
-                tasksRepo.getTimeData()
-                        .subscribe({
-                            currentTimeProcess = it
-                            val progress =
-                                getTimeProgress(it.timeAllocatedToday, it.timeCompletedToday)
-                            view?.setTimeProgress(progress)
-                        }, {
-                            view?.showError(it.message)
-                        }))
+            tasksRepo.getTimeData()
+                .subscribe({
+                    currentTimeProcess = it
+                    val progress =
+                        getTimeProgress(it.timeAllocatedToday, it.timeCompletedToday)
+                    view?.setTimeProgress(progress)
+                }, {
+                    view?.showError(it.message)
+                })
+        )
     }
 
     private fun getTimeProgress(timeAllocatedToday: Int, timeCompletedToday: Int) =
@@ -73,13 +80,13 @@ class HomeScreen @Inject constructor(
                 taskProgressState = TaskProgressState.WAITING
             }
             val topLevelTask = DisplayedTask(
-                    id = task.id,
-                    name = task.name,
-                    service = task.service,
-                    lengthMins = task.lengthMins,
-                    isSubtask = false,
-                    showDivider = task.subtasks.isNullOrEmpty(),
-                    progressState = taskProgressState
+                id = task.id,
+                name = task.name,
+                service = task.service,
+                lengthMins = task.lengthMins,
+                isSubtask = false,
+                showDivider = task.subtasks.isNullOrEmpty(),
+                progressState = taskProgressState
             )
             val result = mutableListOf(topLevelTask)
             task.subtasks?.mapIndexed { index, subTask ->
@@ -103,21 +110,33 @@ class HomeScreen @Inject constructor(
     }
 
     fun taskCompleted(task: DisplayedTask) {
+        if (tasksRepo.taskIsPreviousDay(task)) {
+            refreshTaskData()
+            activity?.let {
+                Toast.makeText(it, "New day has started since last task refresh. Updating tasks now...", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
         updateTimeProgress(task)
         autoDispose(
-                tasksRepo.taskCompleted(task)
-                        .subscribe { response ->
-                            if (response.result == "success") {
-                                activity?.let {
-                                    Toast.makeText(it, "Completed task: ${task.name}", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                activity?.let {
-                                    Toast.makeText(it, "Failed to mark ${task.name} as completed, reloading tasks...", Toast.LENGTH_SHORT).show()
-                                }
-                                refreshTaskData() // update task to re-show task marked as completed
-                            }
-                        })
+            tasksRepo.taskCompleted(task)
+                .subscribe { response ->
+                    if (response.result == "success") {
+                        activity?.let {
+                            Toast.makeText(it, "Completed task: ${task.name}", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    } else {
+                        activity?.let {
+                            Toast.makeText(
+                                it,
+                                "Failed to mark ${task.name} as completed, reloading tasks...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    refreshTaskData() // ensure data is consistent with current task state
+                })
         updateInProgressTask(task)
     }
 
@@ -143,22 +162,38 @@ class HomeScreen @Inject constructor(
     }
 
     fun deferTask(task: DisplayedTask) {
+        if (tasksRepo.taskIsPreviousDay(task)) {
+            refreshTaskData()
+            activity?.let {
+                Toast.makeText(it, "New day has started since last task refresh. Updating tasks now...", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
         autoDispose(
-                tasksRepo.deferTask(task)
-                        .subscribe({ response ->
-                            if (response.result == "success") {
-                                activity?.let {
-                                    Toast.makeText(it, "Deferred task to tomorrow: ${task.name}", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                activity?.let {
-                                    Toast.makeText(it, "Failed to defer ${task.name}, reloading tasks...", Toast.LENGTH_SHORT).show()
-                                }
-                                refreshTaskData() // update task list
-                            }
-                        }, {
-                            view?.showError(it.message)
-                        }))
+            tasksRepo.deferTask(task)
+                .subscribe({ response ->
+                    if (response.result == "success") {
+                        activity?.let {
+                            Toast.makeText(
+                                it,
+                                "Deferred task to tomorrow: ${task.name}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        activity?.let {
+                            Toast.makeText(
+                                it,
+                                "Failed to defer ${task.name}, reloading tasks...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    refreshTaskData() // ensure data is consistent with current task state
+                }, {
+                    view?.showError(it.message)
+                })
+        )
         updateInProgressTask(task)
     }
 
@@ -183,14 +218,15 @@ class HomeScreen @Inject constructor(
     }
 
     data class DisplayedTask(
-            val id: String,
-            val subtaskId: String? = null,
-            val name: String,
-            val service: String,
-            val lengthMins: Int,
-            val isSubtask: Boolean,
-            val showDivider: Boolean,
-            var progressState: TaskProgressState)
+        val id: String,
+        val subtaskId: String? = null,
+        val name: String,
+        val service: String,
+        val lengthMins: Int,
+        val isSubtask: Boolean,
+        val showDivider: Boolean,
+        var progressState: TaskProgressState
+    )
 
     enum class TaskProgressState {
         READY,

@@ -37,6 +37,9 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
         largeFingersModeSwitch.setOnCheckedChangeListener { _, isChecked ->
             screen.setLargeFingersModeEnabled(isChecked)
         }
+        sectionTasksByTimeOfDaySwitch.setOnCheckedChangeListener { _, isChecked ->
+            screen.setSectionTasksByTimeOfDayEnabled(isChecked)
+        }
         logoutButton.setOnClickListener {
             screen.logout()
         }
@@ -63,6 +66,10 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
 
     fun setLargeFingersMode(enabled: Boolean) {
         largeFingersModeSwitch.isChecked = enabled
+    }
+
+    fun setSectionTasksByTimeOfDayMode(enabled: Boolean) {
+        sectionTasksByTimeOfDaySwitch.isChecked = enabled
     }
 
     fun showLoadingWorkTime() {

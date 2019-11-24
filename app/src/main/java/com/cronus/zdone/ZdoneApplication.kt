@@ -8,6 +8,7 @@ import android.os.Build
 import com.cronus.zdone.dagger.AndroidModule
 import com.cronus.zdone.dagger.AppComponent
 import com.cronus.zdone.dagger.DaggerAppComponent
+import net.danlew.android.joda.JodaTimeAndroid
 
 class ZdoneApplication : Application() {
 
@@ -21,6 +22,7 @@ class ZdoneApplication : Application() {
                 .androidModule(AndroidModule(this))
                 .build()
         createNotificationChannel()
+        JodaTimeAndroid.init(this);
     }
 
     private fun createNotificationChannel() {
