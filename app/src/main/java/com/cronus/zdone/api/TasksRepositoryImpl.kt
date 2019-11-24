@@ -5,6 +5,8 @@ import com.cronus.zdone.api.model.*
 import com.cronus.zdone.home.HomeScreen
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +18,7 @@ class TasksRepositoryImpl @Inject constructor(
     var zdoneService: ZdoneService
 ) : TasksRepository {
 
-    private val CACHE_REFRESH_TIME = 2 * 60 * 1_000_000_000L // 2 mins in nanoseconds
+    private val CACHE_REFRESH_TIME = 2 * 60 * 1_000L // 2 mins in millis
 
     private var cachedData: Tasks? = null
     private var requestId: String? = null
@@ -27,7 +29,7 @@ class TasksRepositoryImpl @Inject constructor(
         observers.add(observer)
         observer.setCancellable { observers.remove(observer) }
 
-        val timeElapsed = System.nanoTime() - lastRequestTime
+        val timeElapsed = System.currentTimeMillis() - lastRequestTime
         if (timeElapsed < CACHE_REFRESH_TIME) {
             cachedData?.let { observer.onNext(it) }
         } else {
@@ -52,7 +54,7 @@ class TasksRepositoryImpl @Inject constructor(
     @Synchronized
     private fun <T> fetchData(responseTransformation: (Tasks) -> T) {
         if (requestId == null) {
-            lastRequestTime = System.nanoTime()
+            lastRequestTime = System.currentTimeMillis()
             requestId = UUID.randomUUID().toString()
             observe(zdoneService.getTaskInfo().map {
                 synchronized(this) {
@@ -104,6 +106,10 @@ class TasksRepositoryImpl @Inject constructor(
 
     override fun flushCache() {
         cachedData = null
+    }
+
+    override fun taskIsPreviousDay(task: HomeScreen.DisplayedTask): Boolean {
+        return DateTime(lastRequestTime, DateTimeZone.getDefault()).dayOfYear().get() < DateTime.now().dayOfYear().get()
     }
 
     private fun <T> observe(observable: Observable<T>): Observable<T> {

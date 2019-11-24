@@ -61,6 +61,25 @@
         android:orientation="vertical"
         android:paddingTop="@dimen/normalPadding">
 
+        <Switch
+            android:id="@+id/sectionTasksByTimeOfDaySwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textPrimary"
+            android:text="Section Tasks By Time of Day" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Only show morning tasks during morning routine, only show current day tasks during day, only show evening tasks in evening"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/normalPadding">
+
         <Button
             android:id="@+id/logoutButton"
             android:layout_width="wrap_content"

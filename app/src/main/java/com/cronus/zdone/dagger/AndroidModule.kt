@@ -9,4 +9,7 @@ class AndroidModule(val context: Context) {
 
     @Provides
     fun context() = context
+
+    @Provides
+    fun sharedPreferences(context: Context) = context.getSharedPreferences("zdone", Context.MODE_PRIVATE)
 }

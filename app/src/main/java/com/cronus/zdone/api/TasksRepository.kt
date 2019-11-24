@@ -22,4 +22,6 @@ interface TasksRepository {
 
     fun updateWorkTime(maxWorkMins: Int)
 
+    fun taskIsPreviousDay(task: HomeScreen.DisplayedTask): Boolean
+
 }
