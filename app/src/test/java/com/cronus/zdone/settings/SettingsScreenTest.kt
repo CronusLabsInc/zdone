@@ -14,7 +14,7 @@ class SettingsScreenTest {
     val workTimeManager = mockk<WorkTimeManager>(relaxed = true)
     val tasksRepository = mockk<TasksRepository>()
     val view = mockk<SettingsView>(relaxed = true)
-    val settingsScreen = SettingsScreen(apiTokenManager, workTimeManager, tasksRepository)
+    val settingsScreen = SettingsScreen(apiTokenManager, workTimeManager, tasksRepository, mockk(), mockk())
 
     @Before
     fun setUp() {
