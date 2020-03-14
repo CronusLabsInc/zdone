@@ -11,12 +11,16 @@ class TestTasksRepo : TasksRepository {
 
     override fun updateWorkTime(maxWorkMins: Int) {}
 
-    override fun deferTask(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun deferTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))
     }
 
-    override fun taskCompleted(task: TasksScreen.DisplayedTask): Observable<UpdateDataResponse> {
+    override fun taskCompleted(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))
+    }
+
+    override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
+        return false
     }
 
     override fun getTimeData(): Observable<TimeProgress> {
@@ -24,10 +28,9 @@ class TestTasksRepo : TasksRepository {
     }
 
     override fun getTasks(): Observable<List<Task>> {
-        return Observable.just(listOf(
-                Task("abcd", "Anki", null, "habitica", 15)
-        )
-        )
+        return Observable.just(
+            listOf(
+                Task("abcd", "Anki", null, "habitica", 15)))
     }
 
     override fun refreshTaskData() {}

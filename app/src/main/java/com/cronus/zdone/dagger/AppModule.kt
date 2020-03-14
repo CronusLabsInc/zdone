@@ -4,7 +4,7 @@ import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.AppExecutorsImpl
 import com.cronus.zdone.api.AuthInterceptor
 import com.cronus.zdone.api.TasksRepository
-import com.cronus.zdone.api.TasksRepositoryImpl
+import com.cronus.zdone.api.RealTasksRepository
 import com.cronus.zdone.api.ZdoneService
 import dagger.Binds
 import dagger.Module
@@ -25,7 +25,7 @@ class AppModule {
     interface Bindings {
 
         @Binds
-        fun tasksRepository(tasksRepositoryImpl: TasksRepositoryImpl): TasksRepository
+        fun tasksRepository(realTasksRepository: RealTasksRepository): TasksRepository
 
         @Binds
         fun appExecutors(appExecutorsImpl: AppExecutorsImpl): AppExecutors

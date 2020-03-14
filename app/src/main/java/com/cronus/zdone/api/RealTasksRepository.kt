@@ -6,6 +6,7 @@ import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TasksScreen
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
+import io.reactivex.subjects.PublishSubject
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.*
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 import kotlin.collections.HashSet
 
 @Singleton
-class TasksRepositoryImpl @Inject constructor(
+class RealTasksRepository @Inject constructor(
     var appExecutors: AppExecutors,
     var zdoneService: ZdoneService,
     val taskShowingStrategyProvider: TaskShowerStrategyProvider

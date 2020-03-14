@@ -4,7 +4,7 @@ import com.cronus.zdone.api.ZdoneService
 import com.cronus.zdone.api.model.*
 import io.reactivex.Observable
 
-class TestZdoneServiceImpl : ZdoneService {
+class FakeZdoneService : ZdoneService {
 
     override fun updateTask(taskStatus: TaskStatusUpdate): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))

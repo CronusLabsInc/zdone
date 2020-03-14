@@ -49,7 +49,7 @@ class TasksScreenTest {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(task) }
+        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
     }
 
     @Test
@@ -63,7 +63,7 @@ class TasksScreenTest {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(task) }
+        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
         // check task data is refreshed
         verify { testRepo.refreshTaskData() }
     }
@@ -75,7 +75,7 @@ class TasksScreenTest {
                 DisplayedTask("other_id", null, "Writing", "habitica", 30, false, true, IN_PROGRESS)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(task) }
+        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
         assertThat(tasksScreen.inProgressTask).isNotNull()
     }
 
@@ -85,7 +85,7 @@ class TasksScreenTest {
         tasksScreen.inProgressTask = task
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(task) }
+        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
         assertThat(tasksScreen.inProgressTask).isNull()
         verify { taskTimerManager.cancelTimer() }
         verify { tasksView.setTasksProgressState(READY) }
@@ -117,7 +117,7 @@ class TasksScreenTest {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.deferTask(task)
 
-        verify { testRepo.deferTask(task) }
+        verify { testRepo.deferTask(eq(task.toTaskUpdateInfo())) }
     }
 
     @Test
@@ -131,7 +131,7 @@ class TasksScreenTest {
         )
         tasksScreen.deferTask(task)
 
-        verify { testRepo.deferTask(task) }
+        verify { testRepo.deferTask(eq(task.toTaskUpdateInfo())) }
         verify { testRepo.refreshTaskData() } // should re-request task data on failure
     }
 
@@ -144,4 +144,8 @@ class TasksScreenTest {
         verify { tasksView.showError("boom") } // should re-request task data on failure
     }
 
+}
+
+private fun DisplayedTask.toTaskUpdateInfo(): TasksRepository.TaskUpdateInfo {
+    return TasksRepository.TaskUpdateInfo(id, subtaskId, service, null)
 }
