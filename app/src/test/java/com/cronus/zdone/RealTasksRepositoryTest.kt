@@ -97,5 +97,4 @@ class RealTasksRepositoryTest {
         verify(exactly = 2) { zdoneService.getTaskInfo() } // needs to hit service twice
     }
 
-
 }
