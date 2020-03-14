@@ -80,6 +80,16 @@ class TasksScreenTest {
     }
 
     @Test
+    fun `GIVEN task is from previous day WHEN completing task THEN refresh data instead`() {
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
+        every { testRepo.taskIsPreviousDay(task) } returns true
+        tasksScreen.taskCompleted(task)
+
+        verify { testRepo.refreshTaskData() }
+        verify(inverse = true) { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+    }
+
+    @Test
     fun taskCompleted_completedInProgressTask() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
         tasksScreen.inProgressTask = task
