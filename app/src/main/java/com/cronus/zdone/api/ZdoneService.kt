@@ -20,7 +20,13 @@ interface ZdoneService {
     @POST("/api/update_task")
     fun updateTask(@Body taskStatus: TaskStatusUpdate): Observable<UpdateDataResponse>
 
+    @POST("/api/update_task")
+    suspend fun updateTaskAsync(@Body taskStatus: TaskStatusUpdate): UpdateDataResponse
+
     @POST("/api/update_time")
     fun updateWorkTime(@Body body: Map<String, Int>): Observable<UpdateDataResponse>
+
+    @POST("/api/update_time")
+    suspend fun updateWorkTimeAsync(@Body body: Map<String, Int>): UpdateDataResponse
 
 }

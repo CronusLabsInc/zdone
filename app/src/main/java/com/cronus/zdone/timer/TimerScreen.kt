@@ -110,7 +110,8 @@ class TimerScreen @Inject constructor(
                 completedTask.id,
                 null,
                 completedTask.service,
-                currentTaskDurationSecs
+                currentTaskDurationSecs,
+                updateType = "complete"
             )
         ).subscribe()
         startNextTask()
@@ -123,7 +124,8 @@ class TimerScreen @Inject constructor(
                 defferedTask.id,
                 null,
                 defferedTask.service,
-                currentTaskDurationSecs
+                currentTaskDurationSecs,
+                updateType = "defer"
             )
         ).subscribe()
         startNextTask()

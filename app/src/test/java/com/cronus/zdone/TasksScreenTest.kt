@@ -7,14 +7,14 @@ import com.cronus.zdone.home.TasksScreen.DisplayedTask
 import com.cronus.zdone.home.TasksScreen.TaskProgressState.*
 import com.cronus.zdone.home.TasksView
 import com.cronus.zdone.timer.TaskTimerManager
+import com.dropbox.android.external.store4.ResponseOrigin
+import com.dropbox.android.external.store4.StoreResponse
 import com.google.common.truth.Truth.assertThat
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.spyk
-import io.mockk.verify
 import io.reactivex.Observable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -73,23 +73,23 @@ class TasksScreenTest {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.taskCompletedFromStore(eq(task.toTaskUpdateInfo("complete"))) }
     }
 
     @Test
     fun taskCompleted_onFailure() {
-        every { testRepo.taskCompleted(any()) } returns Observable.just(
-            UpdateDataResponse(
+        coEvery { testRepo.taskCompletedFromStore(any()) } returns flowOf(
+            StoreResponse.Data(UpdateDataResponse(
                         "failure",
                         "500 internal server error"
-                )
+                ), ResponseOrigin.Fetcher)
         )
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.taskCompletedFromStore(eq(task.toTaskUpdateInfo("complete"))) }
         // check task data is refreshed
-        verify { testRepo.refreshTaskData() }
+        coVerify { testRepo.refreshTaskDataFromStore() }
     }
 
     @Test
@@ -99,7 +99,7 @@ class TasksScreenTest {
                 DisplayedTask("other_id", null, "Writing", "habitica", 30, false, true, IN_PROGRESS)
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.taskCompletedFromStore(eq(task.toTaskUpdateInfo("complete"))) }
         assertThat(tasksScreen.inProgressTask).isNotNull()
     }
 
@@ -109,8 +109,8 @@ class TasksScreenTest {
         every { testRepo.taskIsPreviousDay(task) } returns true
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.refreshTaskData() }
-        verify(inverse = true) { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.refreshTaskDataFromStore() }
+        verify(inverse = true) { testRepo.taskCompleted(eq(task.toTaskUpdateInfo("complete"))) }
     }
 
     @Test
@@ -119,7 +119,7 @@ class TasksScreenTest {
         tasksScreen.inProgressTask = task
         tasksScreen.taskCompleted(task)
 
-        verify { testRepo.taskCompleted(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.taskCompletedFromStore(eq(task.toTaskUpdateInfo("complete"))) }
         assertThat(tasksScreen.inProgressTask).isNull()
         verify { taskTimerManager.cancelTimer() }
         verify { tasksView.setTasksProgressState(READY) }
@@ -151,35 +151,36 @@ class TasksScreenTest {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
         tasksScreen.deferTask(task)
 
-        verify { testRepo.deferTask(eq(task.toTaskUpdateInfo())) }
+        coVerify { testRepo.deferTaskFromStore(eq(task.toTaskUpdateInfo("defer"))) }
     }
 
     @Test
     fun deferTask_failure() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        every { testRepo.deferTask(any()) } returns Observable.just(
-            UpdateDataResponse(
-                        "error",
-                        "500 internal server error"
-                )
-        )
+        coEvery { testRepo.deferTaskFromStore(any()) } returns flowOf(
+            StoreResponse.Data(UpdateDataResponse(
+                "error",
+                "500 internal server error"
+            ), ResponseOrigin.Fetcher))
+
         tasksScreen.deferTask(task)
 
-        verify { testRepo.deferTask(eq(task.toTaskUpdateInfo())) }
-        verify { testRepo.refreshTaskData() } // should re-request task data on failure
+        coVerify { testRepo.deferTaskFromStore(eq(task.toTaskUpdateInfo("defer"))) }
+        coVerify { testRepo.refreshTaskDataFromStore() } // should re-request task data on failure
     }
 
     @Test
     fun deferTask_apiError() {
         val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
-        every { testRepo.deferTask(any()) } returns Observable.error(Exception("boom"))
+        coEvery { testRepo.deferTaskFromStore(any()) } returns flowOf(StoreResponse.Error(Exception("boom"), ResponseOrigin.Fetcher))
         tasksScreen.deferTask(task)
 
-        verify { tasksView.showError("boom") } // should re-request task data on failure
+        coVerify { tasksView.showError("boom") } // should re-request task data on failure
+        coVerify { testRepo.refreshTaskDataFromStore() }
     }
 
 }
 
-private fun DisplayedTask.toTaskUpdateInfo(): TasksRepository.TaskUpdateInfo {
-    return TasksRepository.TaskUpdateInfo(id, subtaskId, service, null)
+private fun DisplayedTask.toTaskUpdateInfo(updateType: String): TasksRepository.TaskUpdateInfo {
+    return TasksRepository.TaskUpdateInfo(id, subtaskId, service, null, updateType)
 }

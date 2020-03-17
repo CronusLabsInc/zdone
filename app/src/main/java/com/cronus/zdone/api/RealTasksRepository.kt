@@ -1,6 +1,7 @@
 package com.cronus.zdone.api
 
 import com.cronus.zdone.AppExecutors
+import com.cronus.zdone.api.TasksRepository.*
 import com.cronus.zdone.api.model.*
 import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TasksScreen
@@ -9,7 +10,6 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.*
@@ -24,13 +24,29 @@ class RealTasksRepository @Inject constructor(
     val taskShowingStrategyProvider: TaskShowerStrategyProvider
 ) : TasksRepository {
 
-    private val store: Store<Unit, Tasks>
+    private val taskInfoStore: Store<Unit, Tasks>
+    private val taskUpdateStore: Store<TaskUpdateInfo, UpdateDataResponse>
 
     init {
-        store = StoreBuilder
+        taskInfoStore = StoreBuilder
             .fromNonFlow<Unit, Tasks> { zdoneService.getTaskInfoFlow() }
             .build()
+        taskUpdateStore = StoreBuilder.fromNonFlow<TaskUpdateInfo, UpdateDataResponse>
+        { taskUpdateInfo ->
+            zdoneService.updateTaskAsync(
+                TaskStatusUpdate(
+                    id = taskUpdateInfo.id,
+                    subtaskId = taskUpdateInfo.subtaskId,
+                    update = taskUpdateInfo.updateType,
+                    service = taskUpdateInfo.service,
+                    duration_seconds = taskUpdateInfo.duration_seconds
+                )
+            )
+        }
+            .build()
+
     }
+
     override suspend fun getTasksFromStore(): Flow<StoreResponse<List<Task>>> =
         getCachedData().mapToSubField(Tasks::tasksToDo)
 
@@ -38,7 +54,7 @@ class RealTasksRepository @Inject constructor(
         getCachedData().mapToSubField(Tasks::timeProgress)
 
     private suspend fun getCachedData(): Flow<StoreResponse<Tasks>> = coroutineScope {
-        store.stream(StoreRequest.cached(Unit, refresh = false))
+        taskInfoStore.stream(StoreRequest.cached(Unit, refresh = false))
     }
 
     private fun <T> Flow<StoreResponse<Tasks>>.mapToSubField(fieldGetter: Tasks.() -> T): Flow<StoreResponse<T>> {
@@ -46,12 +62,39 @@ class RealTasksRepository @Inject constructor(
     }
 
 
-    private fun <T> extractFieldFromTasks(response: StoreResponse<Tasks>, extractField: Tasks.() -> T): StoreResponse<T> {
+    private fun <T> extractFieldFromTasks(
+        response: StoreResponse<Tasks>,
+        extractField: Tasks.() -> T
+    ): StoreResponse<T> {
         return when (response) {
             is StoreResponse.Loading -> StoreResponse.Loading(response.origin)
-            is StoreResponse.Data -> StoreResponse.Data(response.value.extractField(), response.origin)
+            is StoreResponse.Data -> StoreResponse.Data(
+                response.value.extractField(),
+                response.origin
+            )
             is StoreResponse.Error -> StoreResponse.Error(response.error, response.origin)
         }
+    }
+
+    override suspend fun taskCompletedFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return updateTask(taskUpdateInfo)
+    }
+
+    override suspend fun deferTaskFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return updateTask(taskUpdateInfo)
+    }
+
+    private suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> =
+        coroutineScope {
+            taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
+        }
+
+    override suspend fun refreshTaskDataFromStore() {
+        taskInfoStore.fresh(Unit)
+    }
+
+    override suspend fun flushCacheFromStore() {
+        taskInfoStore.clearAll()
     }
 
     private val CACHE_REFRESH_TIME = 2 * 60 * 1_000L // 2 mins in millis
@@ -113,7 +156,7 @@ class RealTasksRepository @Inject constructor(
         return dataStream.map { it.timeProgress }
     }
 
-    override fun taskCompleted(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
+    override fun taskCompleted(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
@@ -127,7 +170,7 @@ class RealTasksRepository @Inject constructor(
         )
     }
 
-    override fun deferTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
+    override fun deferTask(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse> {
         return observe(
             zdoneService.updateTask(
                 TaskStatusUpdate(
@@ -141,17 +184,15 @@ class RealTasksRepository @Inject constructor(
         )
     }
 
-    override fun updateWorkTime(maxWorkMins: Int) {
-        observe(zdoneService.updateWorkTime(mapOf("maximum_minutes_per_day" to maxWorkMins))
-            .doOnNext { refreshTaskData() }).subscribe()
-    }
-
     override fun flushCache() {
         cachedData = null
     }
 
     override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
-        return DateTime(lastRequestTime, DateTimeZone.getDefault()).dayOfYear().get() < DateTime.now().dayOfYear().get()
+        return DateTime(
+            lastRequestTime,
+            DateTimeZone.getDefault()
+        ).dayOfYear().get() < DateTime.now().dayOfYear().get()
     }
 
     private fun <T> observe(observable: Observable<T>): Observable<T> {
