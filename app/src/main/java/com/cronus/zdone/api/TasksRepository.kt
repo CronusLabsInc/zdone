@@ -20,13 +20,19 @@ interface TasksRepository {
 
     fun taskCompleted(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse>
 
+    suspend fun taskCompletedFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
+
     fun deferTask(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse>
+
+    suspend fun deferTaskFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
 
     fun refreshTaskData()
 
+    suspend fun refreshTaskDataFromStore()
+
     fun flushCache()
 
-    fun updateWorkTime(maxWorkMins: Int)
+    suspend fun flushCacheFromStore()
 
     fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean
 
@@ -34,7 +40,8 @@ interface TasksRepository {
         val id: String,
         val subtaskId: String?,
         val service: String,
-        val duration_seconds: Long?
+        val duration_seconds: Long?,
+        val updateType: String
     )
 
 }

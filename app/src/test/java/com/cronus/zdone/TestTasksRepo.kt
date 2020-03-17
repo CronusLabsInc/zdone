@@ -17,6 +17,7 @@ class TestTasksRepo : TasksRepository {
         Task("abcd", "Anki", null, "habitica", 15)
     )
     private val timeProgress = TimeProgress(15, 85, 9999)
+    private val sucessfulUpdate = UpdateDataResponse("success")
 
     override suspend fun getTasksFromStore(): Flow<StoreResponse<List<Task>>> {
         return flowOf(StoreResponse.Data(tasks, ResponseOrigin.Cache))
@@ -26,14 +27,12 @@ class TestTasksRepo : TasksRepository {
         return flowOf(StoreResponse.Data(timeProgress, ResponseOrigin.Cache))
     }
 
-    override fun updateWorkTime(maxWorkMins: Int) {}
-
     override fun deferTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return Observable.just(UpdateDataResponse("success"))
+        return Observable.just(sucessfulUpdate)
     }
 
     override fun taskCompleted(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return Observable.just(UpdateDataResponse("success"))
+        return Observable.just(sucessfulUpdate)
     }
 
     override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
@@ -52,6 +51,24 @@ class TestTasksRepo : TasksRepository {
 
     override fun flushCache() {
         // do nothing
+    }
+
+    private fun <T> storeResponseFrom(t: T): StoreResponse<T> = StoreResponse.Data(t, ResponseOrigin.Fetcher)
+
+    override suspend fun taskCompletedFromStore(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return flowOf(storeResponseFrom(sucessfulUpdate))
+    }
+
+    override suspend fun deferTaskFromStore(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return flowOf(storeResponseFrom(sucessfulUpdate))
+    }
+
+    override suspend fun refreshTaskDataFromStore() {
+
+    }
+
+    override suspend fun flushCacheFromStore() {
+
     }
 
 }

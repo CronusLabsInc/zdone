@@ -5,6 +5,7 @@ import com.cronus.zdone.api.model.*
 import io.reactivex.Observable
 
 class FakeZdoneService : ZdoneService {
+
     val tasks = Tasks(
         listOf(Task("abcd", "Anki", null, "toodledo", 15)),
         TimeProgress(15, 85, 9999)
@@ -24,5 +25,13 @@ class FakeZdoneService : ZdoneService {
 
     override fun updateWorkTime(body: Map<String, Int>): Observable<UpdateDataResponse> {
         return Observable.just(UpdateDataResponse("success"))
+    }
+
+    override suspend fun updateTaskAsync(taskStatus: TaskStatusUpdate): UpdateDataResponse {
+        return UpdateDataResponse("success")
+    }
+
+    override suspend fun updateWorkTimeAsync(body: Map<String, Int>): UpdateDataResponse {
+        return UpdateDataResponse("success")
     }
 }

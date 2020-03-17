@@ -136,32 +136,33 @@ class TasksScreen @Inject constructor(
             return
         }
         updateTimeProgress(task)
-        autoDispose(
-            tasksRepo.taskCompleted(
+        mainScope.launch {
+            tasksRepo.taskCompletedFromStore(
                 TasksRepository.TaskUpdateInfo(
                     task.id,
                     task.subtaskId,
                     task.service,
-                    null
-                )
-            )
-                .subscribe { response ->
-                    if (response.result == "success") {
-                        activity?.let {
-                            Toast.makeText(it, "Completed task: ${task.name}", Toast.LENGTH_SHORT)
-                                .show()
+                    null,
+                    updateType = "complete"))
+                .collect { completedResult ->
+                    when (completedResult) {
+                        is StoreResponse.Loading -> toaster.showToast("Telling server task complete")
+                        is StoreResponse.Data -> {
+                            if (completedResult.value.result == "success")
+                                toaster.showToast("Completed task: ${task.name}")
+                            else {
+                                view?.showError(completedResult.value.message)
+                                refreshTaskData()
+                            }
                         }
-                    } else {
-                        activity?.let {
-                            Toast.makeText(
-                                it,
-                                "Failed to mark ${task.name} as completed, reloading tasks...",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        is StoreResponse.Error -> {
+                            toaster.showToast("Failed to mark ${task.name} as completed, reloading tasks...")
+                            view?.showError(completedResult.error.message)
+                            refreshTaskData() // ensure data is consistent with current task state
                         }
                     }
-                    refreshTaskData() // ensure data is consistent with current task state
-                })
+                }
+        }
         updateInProgressTask(task)
     }
 
@@ -189,52 +190,43 @@ class TasksScreen @Inject constructor(
     fun deferTask(task: DisplayedTask) {
         if (tasksRepo.taskIsPreviousDay(task)) {
             refreshTaskData()
-            activity?.let {
-                Toast.makeText(
-                    it,
-                    "New day has started since last task refresh. Updating tasks now...",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            toaster.showToast("New day has started since last task refresh. Updating tasks now...")
             return
         }
-        autoDispose(
-            tasksRepo.deferTask(
+        mainScope.launch {
+            tasksRepo.deferTaskFromStore(
                 TasksRepository.TaskUpdateInfo(
                     task.id,
                     task.subtaskId,
                     task.service,
-                    null
-                )
-            )
-                .subscribe({ response ->
-                    if (response.result == "success") {
-                        activity?.let {
-                            Toast.makeText(
-                                it,
-                                "Deferred task to tomorrow: ${task.name}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                    null,
+                    updateType = "defer"))
+                .collect { deferralResult ->
+                    when (deferralResult) {
+                        is StoreResponse.Loading -> toaster.showToast("Deferring task")
+                        is StoreResponse.Data -> {
+                            if (deferralResult.value.result == "success")
+                                toaster.showToast("Deferred task to tomorrow: ${task.name}")
+                            else {
+                                view?.showError(deferralResult.value.message)
+                                refreshTaskData()
+                            }
                         }
-                    } else {
-                        activity?.let {
-                            Toast.makeText(
-                                it,
-                                "Failed to defer ${task.name}, reloading tasks...",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        is StoreResponse.Error -> {
+                            toaster.showToast("Failed to defer ${task.name}, reloading tasks...")
+                            view?.showError(deferralResult.error.message)
+                            refreshTaskData() // ensure data is consistent with current task state
                         }
                     }
-                    refreshTaskData() // ensure data is consistent with current task state
-                }, {
-                    view?.showError(it.message)
-                })
-        )
+                }
+        }
         updateInProgressTask(task)
     }
 
     fun refreshTaskData() {
-        tasksRepo.refreshTaskData()
+        mainScope.launch {
+            tasksRepo.refreshTaskDataFromStore()
+        }
     }
 
     fun startTask(task: DisplayedTask) {

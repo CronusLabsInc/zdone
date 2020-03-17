@@ -109,7 +109,7 @@ class RealTasksRepositoryTest {
 
     @Test
     fun `WHEN task completed THEN reports to service`() {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30)
+        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "complete")
         tasksRepository.taskCompleted(task)
 
         verify {
@@ -129,7 +129,7 @@ class RealTasksRepositoryTest {
 
     @Test
     fun `WHEN subtask completed THEN reports to service`() {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30)
+        val task = TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30, "complete")
         tasksRepository.taskCompleted(task)
 
         verify {
@@ -149,7 +149,7 @@ class RealTasksRepositoryTest {
 
     @Test
     fun `WHEN task deferred THEN reports to service`() {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30)
+        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "defer")
         tasksRepository.deferTask(task)
 
         verify {

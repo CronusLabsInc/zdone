@@ -10,8 +10,13 @@ import com.cronus.zdone.dagger.ScreenInjector
 import com.cronus.zdone.home.NoFilterTaskShowingStrategy
 import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TimeOfDayTaskShowingStrategy
+import com.dropbox.android.external.store4.StoreResponse
 import com.wealthfront.magellan.NavigationType
 import com.wealthfront.magellan.rx2.RxScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class SettingsScreen @Inject constructor(
@@ -57,7 +62,16 @@ class SettingsScreen @Inject constructor(
             else -> newWorkTime.toInt()
         }
         view?.setWorkTime(finalWorkTime)
-        workTimeManager.setMaxWorkMins(finalWorkTime)
+        CoroutineScope(Dispatchers.Main).launch {
+            launch { workTimeManager.setMaxWorkMins(finalWorkTime)
+                .collect { response ->
+                    when (response) {
+                        is StoreResponse.Loading -> {}
+                        is StoreResponse.Data -> tasksRepository.refreshTaskDataFromStore()
+                        is StoreResponse.Error -> {}
+                    }
+                }}
+        }
     }
 
     override fun getTitle(context: Context): String {
