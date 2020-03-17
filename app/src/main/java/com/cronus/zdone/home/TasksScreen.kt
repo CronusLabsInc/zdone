@@ -3,20 +3,27 @@ package com.cronus.zdone.home
 import android.content.Context
 import android.widget.Toast
 import com.cronus.zdone.R
+import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.timer.TaskTimerManager
+import com.dropbox.android.external.store4.ResponseOrigin
+import com.dropbox.android.external.store4.StoreResponse
 import com.wealthfront.magellan.rx2.RxScreen
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class TasksScreen @Inject constructor(
     val tasksRepo: TasksRepository,
-    val taskTimerManager: TaskTimerManager
+    val taskTimerManager: TaskTimerManager,
+    val toaster: Toaster
 ) : RxScreen<TasksView>() {
 
     internal var inProgressTask: DisplayedTask? = null
     internal var currentTimeProcess: TimeProgress? = null
+    private val mainScope = CoroutineScope(Dispatchers.Main)
 
     override fun createView(context: Context): TasksView {
         return TasksView(context, isLargeFingersModeEnabled(context))
@@ -34,25 +41,40 @@ class TasksScreen @Inject constructor(
     }
 
     internal fun requestTaskData() {
-        autoDispose(
-            tasksRepo.getTasks()
-                .subscribe({
-                    displayTasks(it)
-                }, {
-                    view?.showError(it.message)
-                })
-        )
-        autoDispose(
-            tasksRepo.getTimeData()
-                .subscribe({
-                    currentTimeProcess = it
-                    val progress =
-                        getTimeProgress(it.timeAllocatedToday, it.timeCompletedToday)
-                    view?.setTimeProgress(progress)
-                }, {
-                    view?.showError(it.message)
-                })
-        )
+        mainScope.launch {
+            tasksRepo.getTasksFromStore()
+                .collect { response ->
+                    when (response) {
+                        is StoreResponse.Loading -> {
+                        }
+                        is StoreResponse.Error -> view?.showError(response.error.message)
+                        is StoreResponse.Data -> displayTasks(response.value)
+                    }
+                }
+        }
+        mainScope.launch {
+            tasksRepo.getTimeDataFromStore()
+                .collect { response ->
+                    when (response) {
+                        is StoreResponse.Loading -> {
+                        }
+                        is StoreResponse.Error -> view?.showError(response.error.message)
+                        is StoreResponse.Data -> {
+                            currentTimeProcess = response.value
+                            view?.setTimeProgress(
+                                getTimeProgress(
+                                    response.value.timeAllocatedToday,
+                                    response.value.timeCompletedToday
+                                )
+                            )
+                        }
+                    }
+                    when (response.origin) {
+                        ResponseOrigin.Cache -> toaster.showToast("Refreshed from cache")
+                        ResponseOrigin.Fetcher -> toaster.showToast("Refreshed from network")
+                    }
+                }
+        }
     }
 
     private fun getTimeProgress(timeAllocatedToday: Int, timeCompletedToday: Int) =

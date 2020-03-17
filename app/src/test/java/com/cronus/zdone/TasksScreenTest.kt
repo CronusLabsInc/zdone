@@ -14,10 +14,17 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.spyk
 import io.mockk.verify
 import io.reactivex.Observable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 class TasksScreenTest {
+
+    private val testDispatcher = TestCoroutineDispatcher()
 
     @RelaxedMockK
     lateinit var taskTimerManager: TaskTimerManager
@@ -30,9 +37,26 @@ class TasksScreenTest {
 
     @Before
     fun setup() {
+        Dispatchers.setMain(testDispatcher)
         MockKAnnotations.init(this, relaxUnitFun = true)
-        tasksScreen = TasksScreen(testRepo, taskTimerManager)
+        tasksScreen = TasksScreen(testRepo, taskTimerManager, FakeToaster())
         tasksScreen.view = tasksView
+    }
+
+    class FakeToaster : Toaster {
+
+        var lastMessage: String? = null
+
+        override fun showToast(message: String) {
+            lastMessage = message
+        }
+
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test

@@ -6,6 +6,9 @@ import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TaskStatusUpdate
 import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TaskShowingStrategy
+import com.dropbox.android.external.store4.Store
+import com.dropbox.android.external.store4.StoreResponse
+import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -13,6 +16,14 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.verify
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -24,6 +35,8 @@ class RealTasksRepositoryTest {
     lateinit var taskShowerStrategyProvider: TaskShowerStrategyProvider
     @MockK
     lateinit var appExecutors: AppExecutors
+
+    private val testDispatcher = TestCoroutineDispatcher()
 
     lateinit var tasksRepository: TasksRepository
 
@@ -40,6 +53,35 @@ class RealTasksRepositoryTest {
                         return tasks
                     }
                 }
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
+    }
+
+    private fun testLaunch(test: suspend () -> Unit) {
+        CoroutineScope(testDispatcher).launch { test.invoke() }
+    }
+
+    @Test
+    fun `WHEN getting tasks from store THEN hits service`() {
+        testLaunch {
+            val response = tasksRepository.getTasksFromStore().toList()
+            assertThat(response[0]).isEqualTo(zdoneService.tasks.tasksToDo)
+        }
+    }
+
+    @Test
+    fun `GIVEN store has a cache WHEN getting tasks from store THEN hits cache`() {
+        testLaunch {
+            tasksRepository.getTasksFromStore().toList()
+            verify(exactly = 1) { zdoneService.getTaskInfo() }
+            tasksRepository.getTasksFromStore().toList()
+            verify(exactly = 1) { zdoneService.getTaskInfo() }
+        }
     }
 
     @Test
@@ -70,7 +112,19 @@ class RealTasksRepositoryTest {
         val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30)
         tasksRepository.taskCompleted(task)
 
-        verify { zdoneService.updateTask(eq(TaskStatusUpdate(task.id, task.subtaskId, "complete", task.service, task.duration_seconds))) }
+        verify {
+            zdoneService.updateTask(
+                eq(
+                    TaskStatusUpdate(
+                        task.id,
+                        task.subtaskId,
+                        "complete",
+                        task.service,
+                        task.duration_seconds
+                    )
+                )
+            )
+        }
     }
 
     @Test
@@ -78,7 +132,19 @@ class RealTasksRepositoryTest {
         val task = TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30)
         tasksRepository.taskCompleted(task)
 
-        verify { zdoneService.updateTask(eq(TaskStatusUpdate(task.id, task.subtaskId, "complete", task.service, task.duration_seconds))) }
+        verify {
+            zdoneService.updateTask(
+                eq(
+                    TaskStatusUpdate(
+                        task.id,
+                        task.subtaskId,
+                        "complete",
+                        task.service,
+                        task.duration_seconds
+                    )
+                )
+            )
+        }
     }
 
     @Test
@@ -86,7 +152,19 @@ class RealTasksRepositoryTest {
         val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30)
         tasksRepository.deferTask(task)
 
-        verify { zdoneService.updateTask(eq(TaskStatusUpdate(task.id, task.subtaskId, "defer", task.service, task.duration_seconds))) }
+        verify {
+            zdoneService.updateTask(
+                eq(
+                    TaskStatusUpdate(
+                        task.id,
+                        task.subtaskId,
+                        "defer",
+                        task.service,
+                        task.duration_seconds
+                    )
+                )
+            )
+        }
     }
 
     @Test

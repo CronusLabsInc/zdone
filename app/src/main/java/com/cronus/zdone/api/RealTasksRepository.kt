@@ -4,9 +4,12 @@ import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.api.model.*
 import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TasksScreen
+import com.dropbox.android.external.store4.*
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
-import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.*
@@ -20,6 +23,36 @@ class RealTasksRepository @Inject constructor(
     var zdoneService: ZdoneService,
     val taskShowingStrategyProvider: TaskShowerStrategyProvider
 ) : TasksRepository {
+
+    private val store: Store<Unit, Tasks>
+
+    init {
+        store = StoreBuilder
+            .fromNonFlow<Unit, Tasks> { zdoneService.getTaskInfoFlow() }
+            .build()
+    }
+    override suspend fun getTasksFromStore(): Flow<StoreResponse<List<Task>>> =
+        getCachedData().mapToSubField(Tasks::tasksToDo)
+
+    override suspend fun getTimeDataFromStore(): Flow<StoreResponse<TimeProgress>> =
+        getCachedData().mapToSubField(Tasks::timeProgress)
+
+    private suspend fun getCachedData(): Flow<StoreResponse<Tasks>> = coroutineScope {
+        store.stream(StoreRequest.cached(Unit, refresh = false))
+    }
+
+    private fun <T> Flow<StoreResponse<Tasks>>.mapToSubField(fieldGetter: Tasks.() -> T): Flow<StoreResponse<T>> {
+        return map { extractFieldFromTasks(it, fieldGetter) }
+    }
+
+
+    private fun <T> extractFieldFromTasks(response: StoreResponse<Tasks>, extractField: Tasks.() -> T): StoreResponse<T> {
+        return when (response) {
+            is StoreResponse.Loading -> StoreResponse.Loading(response.origin)
+            is StoreResponse.Data -> StoreResponse.Data(response.value.extractField(), response.origin)
+            is StoreResponse.Error -> StoreResponse.Error(response.error, response.origin)
+        }
+    }
 
     private val CACHE_REFRESH_TIME = 2 * 60 * 1_000L // 2 mins in millis
 
