@@ -27,30 +27,6 @@ class TestTasksRepo : TasksRepository {
         return flowOf(StoreResponse.Data(timeProgress, ResponseOrigin.Cache))
     }
 
-    override fun deferTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return Observable.just(sucessfulUpdate)
-    }
-
-    override fun taskCompleted(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return Observable.just(sucessfulUpdate)
-    }
-
-    override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
-        return false
-    }
-
-    override fun getTimeData(): Observable<TimeProgress> {
-        return Observable.just(timeProgress)
-    }
-
-    override fun refreshTaskData() {}
-
-    override fun flushCache() {
-        // do nothing
-    }
-
-    private fun <T> storeResponseFrom(t: T): StoreResponse<T> = StoreResponse.Data(t, ResponseOrigin.Fetcher)
-
     override suspend fun taskCompletedFromStore(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
         return flowOf(storeResponseFrom(sucessfulUpdate))
     }
@@ -59,12 +35,14 @@ class TestTasksRepo : TasksRepository {
         return flowOf(storeResponseFrom(sucessfulUpdate))
     }
 
-    override suspend fun refreshTaskDataFromStore() {
+    override suspend fun refreshTaskDataFromStore() { }
 
+    override suspend fun flushCacheFromStore() { }
+
+    override fun areTasksFromPreviousDay(): Boolean {
+        return false
     }
 
-    override suspend fun flushCacheFromStore() {
-
-    }
+    private fun <T> storeResponseFrom(t: T): StoreResponse<T> = StoreResponse.Data(t, ResponseOrigin.Fetcher)
 
 }

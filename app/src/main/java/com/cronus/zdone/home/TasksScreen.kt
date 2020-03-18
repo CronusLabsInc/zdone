@@ -124,7 +124,7 @@ class TasksScreen @Inject constructor(
     }
 
     fun taskCompleted(task: DisplayedTask) {
-        if (tasksRepo.taskIsPreviousDay(task)) {
+        if (tasksRepo.areTasksFromPreviousDay()) {
             refreshTaskData()
             activity?.let {
                 Toast.makeText(
@@ -188,7 +188,7 @@ class TasksScreen @Inject constructor(
     }
 
     fun deferTask(task: DisplayedTask) {
-        if (tasksRepo.taskIsPreviousDay(task)) {
+        if (tasksRepo.areTasksFromPreviousDay()) {
             refreshTaskData()
             toaster.showToast("New day has started since last task refresh. Updating tasks now...")
             return

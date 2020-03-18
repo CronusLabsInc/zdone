@@ -26,6 +26,7 @@ class RealTasksRepository @Inject constructor(
 
     private val taskInfoStore: Store<Unit, Tasks>
     private val taskUpdateStore: Store<TaskUpdateInfo, UpdateDataResponse>
+    private var lastRequestTime: Long = 0
 
     init {
         taskInfoStore = StoreBuilder
@@ -54,6 +55,7 @@ class RealTasksRepository @Inject constructor(
         getCachedData().mapToSubField(Tasks::timeProgress)
 
     private suspend fun getCachedData(): Flow<StoreResponse<Tasks>> = coroutineScope {
+        lastRequestTime = System.currentTimeMillis()
         taskInfoStore.stream(StoreRequest.cached(Unit, refresh = false))
     }
 
@@ -97,90 +99,7 @@ class RealTasksRepository @Inject constructor(
         taskInfoStore.clearAll()
     }
 
-    private val CACHE_REFRESH_TIME = 2 * 60 * 1_000L // 2 mins in millis
-
-    private var cachedData: Tasks? = null
-    private var requestId: String? = null
-    private var lastRequestTime: Long = 0
-    var observers: MutableSet<ObservableEmitter<Tasks>> =
-        Collections.synchronizedSet(HashSet<ObservableEmitter<Tasks>>())
-    private val dataStream = observe(Observable.create<Tasks> { observer ->
-        observers.add(observer)
-        observer.setCancellable { observers.remove(observer) }
-
-        val timeElapsed = System.currentTimeMillis() - lastRequestTime
-        if (timeElapsed < CACHE_REFRESH_TIME) {
-            cachedData?.let { observer.onNext(it) }
-        } else {
-            refreshTaskData()
-        }
-    })
-
-    override fun refreshTaskData() {
-        fetchData { response ->
-            synchronized(observers) {
-                // synchronized to avoid issue where observer is added/removed on
-                // main thread while we are calling this code on background thread
-                cachedData = response
-                observers.forEach { it ->
-                    it.onNext(response)
-                }
-            }
-        }
-    }
-
-    // synchronized for updating requestId atomically
-    @Synchronized
-    private fun <T> fetchData(responseTransformation: (Tasks) -> T) {
-        if (requestId == null) {
-            lastRequestTime = System.currentTimeMillis()
-            requestId = UUID.randomUUID().toString()
-            observe(zdoneService.getTaskInfo().map {
-                synchronized(this) {
-                    requestId = null
-                }
-                responseTransformation(it)
-            }).subscribe()
-        }
-    }
-
-    override fun getTimeData(): Observable<TimeProgress> {
-        return dataStream.map { it.timeProgress }
-    }
-
-    override fun taskCompleted(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return observe(
-            zdoneService.updateTask(
-                TaskStatusUpdate(
-                    id = taskUpdateInfo.id,
-                    subtaskId = taskUpdateInfo.subtaskId,
-                    update = "complete",
-                    service = taskUpdateInfo.service,
-                    duration_seconds = taskUpdateInfo.duration_seconds
-                )
-            )
-        )
-    }
-
-    override fun deferTask(taskUpdateInfo: TaskUpdateInfo): Observable<UpdateDataResponse> {
-        return observe(
-            zdoneService.updateTask(
-                TaskStatusUpdate(
-                    id = taskUpdateInfo.id,
-                    subtaskId = taskUpdateInfo.subtaskId,
-                    update = "defer",
-                    service = taskUpdateInfo.service,
-                    duration_seconds = taskUpdateInfo.duration_seconds
-                )
-            )
-        )
-    }
-
-    override fun flushCache() {
-        cachedData = null
-    }
-
-    override fun taskIsPreviousDay(task: TasksScreen.DisplayedTask): Boolean {
+    override fun areTasksFromPreviousDay(): Boolean {
         return DateTime(
             lastRequestTime,
             DateTimeZone.getDefault()
