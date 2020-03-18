@@ -43,10 +43,6 @@ class TestTasksRepo : TasksRepository {
         return Observable.just(timeProgress)
     }
 
-    override fun getTasks(): Observable<List<Task>> {
-        return Observable.just(tasks)
-    }
-
     override fun refreshTaskData() {}
 
     override fun flushCache() {
