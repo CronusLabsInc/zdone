@@ -144,14 +144,6 @@ class RealTasksRepository @Inject constructor(
         }
     }
 
-    override fun getTasks(): Observable<List<Task>> {
-        return dataStream.map { it.tasksToDo }
-            .map {
-                taskShowingStrategyProvider.getStrategy()
-                    .selectTasksToShow(it)
-            }
-    }
-
     override fun getTimeData(): Observable<TimeProgress> {
         return dataStream.map { it.timeProgress }
     }

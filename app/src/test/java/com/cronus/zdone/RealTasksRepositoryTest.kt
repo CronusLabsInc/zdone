@@ -18,6 +18,7 @@ import io.mockk.verify
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.subscribe
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -42,6 +43,7 @@ class RealTasksRepositoryTest {
 
     @Before
     fun setUp() {
+        Dispatchers.setMain(testDispatcher)
         MockKAnnotations.init(this)
         every { appExecutors.network() } returns Schedulers.trampoline()
         every { appExecutors.mainThread() } returns Schedulers.trampoline()
@@ -53,7 +55,6 @@ class RealTasksRepositoryTest {
                         return tasks
                     }
                 }
-        Dispatchers.setMain(testDispatcher)
     }
 
     @After
@@ -82,18 +83,6 @@ class RealTasksRepositoryTest {
             tasksRepository.getTasksFromStore().toList()
             verify(exactly = 1) { zdoneService.getTaskInfo() }
         }
-    }
-
-    @Test
-    fun `GIVEN task data is cached WHEN requesting task data again THEN return cached data`() {
-        // populate cache
-        tasksRepository.getTasks().subscribe()
-
-        verify(exactly = 1) { zdoneService.getTaskInfo() }
-
-        tasksRepository.getTasks().subscribe() // returns cached data
-
-        verify(exactly = 1) { zdoneService.getTaskInfo() }
     }
 
     @Test
@@ -169,10 +158,11 @@ class RealTasksRepositoryTest {
 
     @Test
     fun `GIVEN cache has data WHEN refreshing THEN gets new data from the service`() {
-        tasksRepository.getTasks().subscribe() // populate cache
-        tasksRepository.refreshTaskData()
-
-        verify(exactly = 2) { zdoneService.getTaskInfo() } // needs to hit service twice
+        testLaunch {
+            tasksRepository.getTasksFromStore().toList() // populate cache
+            tasksRepository.refreshTaskDataFromStore()
+            verify(exactly = 2) { zdoneService.getTaskInfo() } // needs to hit service twice
+        }
     }
 
 }

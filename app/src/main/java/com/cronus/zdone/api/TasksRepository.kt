@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface TasksRepository {
 
-    fun getTasks(): Observable<List<Task>>
-
     suspend fun getTasksFromStore(): Flow<StoreResponse<List<Task>>>
 
     fun getTimeData(): Observable<TimeProgress>

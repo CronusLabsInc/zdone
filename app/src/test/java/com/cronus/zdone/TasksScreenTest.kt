@@ -12,11 +12,12 @@ import com.dropbox.android.external.store4.StoreResponse
 import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
-import io.reactivex.Observable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
@@ -43,16 +44,6 @@ class TasksScreenTest {
         tasksScreen.view = tasksView
     }
 
-    class FakeToaster : Toaster {
-
-        var lastMessage: String? = null
-
-        override fun showToast(message: String) {
-            lastMessage = message
-        }
-
-    }
-
     @After
     fun tearDown() {
         Dispatchers.resetMain()
@@ -60,12 +51,12 @@ class TasksScreenTest {
     }
 
     @Test
-    fun requestTaskData() {
-        tasksScreen.requestTaskData()
-        val displayedTasks = tasksScreen.getDisplayedTasks(testRepo.getTasks().blockingFirst())
-
-        verify { tasksView.setTasks(eq(displayedTasks)) }
-        verify { tasksView.setTimeProgress(85) }
+    fun requestTaskData() = runBlockingTest {
+            tasksScreen.requestTaskData()
+            val tasks = testRepo.getTasksFromStore().toList()[0].dataOrNull()!!
+            val displayedTasks = tasksScreen.getDisplayedTasks(tasks)
+            verify { tasksView.setTasks(eq(displayedTasks)) }
+            verify { tasksView.setTimeProgress(85) }
     }
 
     @Test
