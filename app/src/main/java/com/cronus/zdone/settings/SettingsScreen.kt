@@ -2,6 +2,7 @@ package com.cronus.zdone.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.cronus.zdone.CoroutineScreen
 import com.cronus.zdone.R
 import com.cronus.zdone.WorkTimeManager
 import com.cronus.zdone.api.ApiTokenManager
@@ -27,6 +28,8 @@ class SettingsScreen @Inject constructor(
     val taskShowerStrategyProvider: TaskShowerStrategyProvider
 ) : RxScreen<SettingsView>() {
 
+    private val mainScope = CoroutineScope(Dispatchers.Main)
+
     override fun createView(context: Context) = SettingsView(context)
 
     override fun onSubscribe(context: Context) {
@@ -51,7 +54,9 @@ class SettingsScreen @Inject constructor(
 
     fun updateApiKey(newApiKey: String) {
         apiTokenManager.putToken(newApiKey)
-        tasksRepository.flushCache()
+        mainScope.launch {
+            tasksRepository.flushCacheFromStore()
+        }
     }
 
     fun udpateWorkTime(newWorkTime: String) {
@@ -80,7 +85,9 @@ class SettingsScreen @Inject constructor(
 
     fun logout() {
         apiTokenManager.putToken("")
-        tasksRepository.flushCache()
+        mainScope.launch {
+            tasksRepository.flushCacheFromStore()
+        }
         navigator.navigate({
             it.clear()
             it.push(ScreenInjector.get().loginScreen())

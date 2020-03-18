@@ -8,6 +8,7 @@ import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
+import com.cronus.zdone.api.model.UpdateDataResponse
 import com.dropbox.android.external.store4.StoreResponse
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.flow.collect
@@ -107,30 +108,41 @@ class TimerScreen @Inject constructor(
     }
 
     fun completeTask() {
-        val completedTask = remainingTasks.removeAt(0)
-        tasksRepository.taskCompleted(
-            TasksRepository.TaskUpdateInfo(
-                completedTask.id,
-                null,
-                completedTask.service,
-                currentTaskDurationSecs,
-                updateType = "complete"
-            )
-        ).subscribe()
+        safeLaunch {
+            val completedTask = remainingTasks.removeAt(0)
+            tasksRepository.taskCompletedFromStore(
+                TasksRepository.TaskUpdateInfo(
+                    completedTask.id,
+                    null,
+                    completedTask.service,
+                    currentTaskDurationSecs,
+                    updateType = "complete"))
+                .collect { handleUpdateTaskResponse(it) }
+        }
         startNextTask()
     }
 
+    private fun handleUpdateTaskResponse(it: StoreResponse<UpdateDataResponse>) {
+        when (it) {
+            is StoreResponse.Loading -> toaster.showToast("Sending completed task message to server")
+            is StoreResponse.Data -> toaster.showToast("Result of completing task on server: ${it.value.result}")
+            is StoreResponse.Error -> toaster.showToast("Error when completing task, task will be back in your list")
+        }
+    }
+
     fun deferTask() {
-        val defferedTask = remainingTasks.removeAt(0)
-        tasksRepository.deferTask(
-            TasksRepository.TaskUpdateInfo(
-                defferedTask.id,
-                null,
-                defferedTask.service,
-                currentTaskDurationSecs,
-                updateType = "defer"
-            )
-        ).subscribe()
+        safeLaunch {
+            val defferedTask = remainingTasks.removeAt(0)
+            tasksRepository.deferTaskFromStore(
+                TasksRepository.TaskUpdateInfo(
+                    defferedTask.id,
+                    null,
+                    defferedTask.service,
+                    currentTaskDurationSecs,
+                    updateType = "defer"
+                )
+            ).collect { handleUpdateTaskResponse(it) }
+        }
         startNextTask()
     }
 

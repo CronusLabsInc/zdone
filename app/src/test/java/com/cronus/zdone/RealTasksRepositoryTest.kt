@@ -10,6 +10,7 @@ import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.StoreResponse
 import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -86,20 +87,29 @@ class RealTasksRepositoryTest {
     }
 
     @Test
-    fun `GIVEN time data is cached WHEN requesting time data again THEN return cached data`() {
-        tasksRepository.getTimeData().subscribe()
-
-        verify(exactly = 1) { zdoneService.getTaskInfo() }
-
-        tasksRepository.getTimeData().subscribe() // returns cached data
-
-        verify(exactly = 1) { zdoneService.getTaskInfo() }
-    }
-
-    @Test
-    fun `WHEN task completed THEN reports to service`() {
+    fun `WHEN task completed THEN reports to service with proper params`() = testLaunch {
         val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "complete")
-        tasksRepository.taskCompleted(task)
+        tasksRepository.taskCompletedFromStore(task).toList()
+        coVerify {
+            zdoneService.updateTaskAsync(
+                eq(
+                    TaskStatusUpdate(
+                        task.id,
+                        task.subtaskId,
+                        "complete",
+                        task.service,
+                        task.duration_seconds
+                    )
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `WHEN subtask completed THEN reports to service`() = testLaunch {
+        val task =
+            TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30, "complete")
+        tasksRepository.taskCompletedFromStore(task).toList()
 
         verify {
             zdoneService.updateTask(
@@ -117,32 +127,12 @@ class RealTasksRepositoryTest {
     }
 
     @Test
-    fun `WHEN subtask completed THEN reports to service`() {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30, "complete")
-        tasksRepository.taskCompleted(task)
-
-        verify {
-            zdoneService.updateTask(
-                eq(
-                    TaskStatusUpdate(
-                        task.id,
-                        task.subtaskId,
-                        "complete",
-                        task.service,
-                        task.duration_seconds
-                    )
-                )
-            )
-        }
-    }
-
-    @Test
-    fun `WHEN task deferred THEN reports to service`() {
+    fun `WHEN task deferred THEN reports to service`() = testLaunch {
         val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "defer")
-        tasksRepository.deferTask(task)
+        tasksRepository.deferTaskFromStore(task).toList()
 
-        verify {
-            zdoneService.updateTask(
+        coVerify {
+            zdoneService.updateTaskAsync(
                 eq(
                     TaskStatusUpdate(
                         task.id,
