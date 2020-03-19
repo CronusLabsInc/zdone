@@ -16,3 +16,11 @@ class RealToaster @Inject constructor(private val context: Context) : Toaster {
     }
 
 }
+
+class NoOpToaster @Inject constructor() : Toaster {
+
+    override fun showToast(message: String) {
+        // no-op
+    }
+
+}

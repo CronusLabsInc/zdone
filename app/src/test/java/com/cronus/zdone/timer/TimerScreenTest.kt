@@ -2,15 +2,21 @@ package com.cronus.zdone.timer
 
 import com.cronus.zdone.FakeToaster
 import com.cronus.zdone.TestTasksRepo
+import io.mockk.MockKAnnotations
+import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.mockk
+import org.junit.Before
 import org.junit.Test
 
 class TimerScreenTest {
 
-    val timerScreen = TimerScreen(TestTasksRepo(), TaskTimer(), FakeToaster())
+    var taskExecutionManager = mockk<TaskExecutionManager>()
+    val timerScreen = TimerScreen(TestTasksRepo(), FakeToaster(), taskExecutionManager)
 
     @Test
     fun `GIVEN some tasks to DO IT button THEN do nothing`() {
-        timerScreen.remainingTasks = mutableListOf()
-        timerScreen.startNextTask()
+        timerScreen.startTasks()
     }
+
 }

@@ -12,8 +12,8 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 
     init {
         inflate(context, R.layout.timer, this)
-        startNextTaskButton.setOnClickListener {
-            screen.startNextTask()
+        startTasks.setOnClickListener {
+            screen.startTasks()
         }
         completeTaskButton.setOnClickListener {
             screen.completeTask()
@@ -39,7 +39,7 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 
     private fun showStoppedState(viewState: ViewState) {
         taskName.text = viewState.taskName
-        startNextTaskButton.visibility = GONE
+        startTasks.visibility = GONE
         completeTaskButton.visibility = GONE
         deferTaskButton.visibility = GONE
         minsRemaining.visibility = GONE
@@ -70,7 +70,7 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 
     private fun showInitialState(viewState: ViewState) {
         taskName.text = viewState.taskName
-        startNextTaskButton.visibility = View.VISIBLE
+        startTasks.visibility = View.VISIBLE
     }
 
     private fun clearState() {
@@ -82,7 +82,7 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         colon.visibility = View.GONE
         minsRemaining.setTextColor(resources.getColor(R.color.textPrimary))
         secsRemaining.setTextColor(resources.getColor(R.color.textPrimary))
-        startNextTaskButton.visibility = GONE
+        startTasks.visibility = GONE
         completeTaskButton.visibility = GONE
         deferTaskButton.visibility = GONE
         loading.visibility = GONE

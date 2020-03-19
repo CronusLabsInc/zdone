@@ -6,6 +6,8 @@ import com.cronus.zdone.api.AuthInterceptor
 import com.cronus.zdone.api.RealTasksRepository
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.ZdoneService
+import com.cronus.zdone.timer.RealTaskExecutionManager
+import com.cronus.zdone.timer.TaskExecutionManager
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -14,6 +16,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.jackson.JacksonConverterFactory
+import javax.inject.Singleton
 
 @Module(subcomponents = arrayOf(
         ScreenComponent::class
@@ -25,10 +28,16 @@ class AppModule {
     interface Bindings {
 
         @Binds
+        @Singleton
         fun tasksRepository(realTasksRepository: RealTasksRepository): TasksRepository
 
         @Binds
+        @Singleton
         fun appExecutors(appExecutorsImpl: AppExecutorsImpl): AppExecutors
+
+        @Binds
+        @Singleton
+        fun taskExecutionManager(realTaskExecutionManager: RealTaskExecutionManager): TaskExecutionManager
     }
 
     @Provides

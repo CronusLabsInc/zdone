@@ -23,6 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".timer.TaskTimerForegroundService"
+            android:exported="false" />
+        <service android:name=".timer.UpdateTaskService"
+            android:exported="false" />
     </application>
 
 </manifest>

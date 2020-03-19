@@ -33,8 +33,6 @@ class RealTasksRepositoryTest {
 
     @SpyK
     var zdoneService = FakeZdoneService()
-    @RelaxedMockK
-    lateinit var taskShowerStrategyProvider: TaskShowerStrategyProvider
     @MockK
     lateinit var appExecutors: AppExecutors
 
@@ -49,13 +47,7 @@ class RealTasksRepositoryTest {
         every { appExecutors.network() } returns Schedulers.trampoline()
         every { appExecutors.mainThread() } returns Schedulers.trampoline()
         tasksRepository =
-            RealTasksRepository(appExecutors, zdoneService, taskShowerStrategyProvider)
-        every { taskShowerStrategyProvider.getStrategy() } returns
-                object : TaskShowingStrategy {
-                    override fun selectTasksToShow(tasks: List<Task>): List<Task> {
-                        return tasks
-                    }
-                }
+            RealTasksRepository(appExecutors, zdoneService)
     }
 
     @After
@@ -83,66 +75,6 @@ class RealTasksRepositoryTest {
             verify(exactly = 1) { zdoneService.getTaskInfo() }
             tasksRepository.getTasksFromStore().toList()
             verify(exactly = 1) { zdoneService.getTaskInfo() }
-        }
-    }
-
-    @Test
-    fun `WHEN task completed THEN reports to service with proper params`() = testLaunch {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "complete")
-        tasksRepository.taskCompletedFromStore(task).toList()
-        coVerify {
-            zdoneService.updateTaskAsync(
-                eq(
-                    TaskStatusUpdate(
-                        task.id,
-                        task.subtaskId,
-                        "complete",
-                        task.service,
-                        task.duration_seconds
-                    )
-                )
-            )
-        }
-    }
-
-    @Test
-    fun `WHEN subtask completed THEN reports to service`() = testLaunch {
-        val task =
-            TasksRepository.TaskUpdateInfo("fake-id", "subtask_id", "habitica", 30, "complete")
-        tasksRepository.taskCompletedFromStore(task).toList()
-
-        verify {
-            zdoneService.updateTask(
-                eq(
-                    TaskStatusUpdate(
-                        task.id,
-                        task.subtaskId,
-                        "complete",
-                        task.service,
-                        task.duration_seconds
-                    )
-                )
-            )
-        }
-    }
-
-    @Test
-    fun `WHEN task deferred THEN reports to service`() = testLaunch {
-        val task = TasksRepository.TaskUpdateInfo("fake-id", null, "habitica", 30, "defer")
-        tasksRepository.deferTaskFromStore(task).toList()
-
-        coVerify {
-            zdoneService.updateTaskAsync(
-                eq(
-                    TaskStatusUpdate(
-                        task.id,
-                        task.subtaskId,
-                        "defer",
-                        task.service,
-                        task.duration_seconds
-                    )
-                )
-            )
         }
     }
 

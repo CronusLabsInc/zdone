@@ -22,7 +22,7 @@ class ZdoneApplication : Application() {
                 .androidModule(AndroidModule(this))
                 .build()
         createNotificationChannel()
-        JodaTimeAndroid.init(this);
+        JodaTimeAndroid.init(this)
     }
 
     private fun createNotificationChannel() {
@@ -40,7 +40,7 @@ class ZdoneApplication : Application() {
 
     // make injector available everywhere using static instance
     companion object {
-        val CHANNEL_ID = "CHANNEL_ID"
+        val CHANNEL_ID = "ZDONE_CHANNEL_ID"
         private var INSTANCE: ZdoneApplication? = null
 
         @JvmStatic

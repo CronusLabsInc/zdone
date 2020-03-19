@@ -11,8 +11,8 @@ abstract class CoroutineScreen<V> : Screen<V>() where V : ViewGroup, V : ScreenV
     private val scope = CoroutineScope(Dispatchers.Main)
     private val jobs = mutableSetOf<Job>()
 
-    protected fun safeLaunch(block: suspend () -> Unit) {
-        jobs.add(scope.launch { block.invoke() })
+    protected fun safeLaunch(block: suspend CoroutineScope.() -> Unit) {
+        jobs.add(scope.launch { block.invoke(scope) })
     }
 
     override fun onHide(context: Context?) {
