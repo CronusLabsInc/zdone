@@ -7,6 +7,7 @@ import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.timer.TaskExecutionManager
+import com.cronus.zdone.timer.TaskExecutionState
 import com.dropbox.android.external.store4.StoreResponse
 import com.wealthfront.magellan.rx2.RxScreen
 import kotlinx.coroutines.*
@@ -36,6 +37,18 @@ class TasksScreen @Inject constructor(
 
     override fun onSubscribe(context: Context?) {
         requestTaskData()
+        CoroutineScope(Dispatchers.Main).launch {
+            taskExecutionManager.currentTaskExecutionData
+                .filterIsInstance<TaskExecutionState.AllTasksCompleted>()
+                .collect {
+                    // Tasks can be started and completed from multiple locations.
+                    // If you start a single task from this screen and then finish it from
+                    // the notification, we need to update the state of this screen to
+                    // clear out the in progress task status. That happens here.
+                    inProgressTask = null
+                    view?.setTasksProgressState(TaskProgressState.READY)
+                }
+        }
     }
 
     internal fun requestTaskData() {

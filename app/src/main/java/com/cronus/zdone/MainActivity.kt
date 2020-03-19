@@ -20,7 +20,9 @@ class MainActivity : SingleActivity(), NavigationListener {
 
     companion object {
         fun getLaunchIntent(context: Context): Intent {
-            return Intent(context, MainActivity::class.java)
+            val intent = Intent(context, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            return intent
         }
     }
 
