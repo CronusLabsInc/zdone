@@ -8,7 +8,7 @@ import com.cronus.zdone.home.TasksScreen
 import com.dropbox.android.external.store4.*
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
@@ -20,8 +20,7 @@ import kotlin.collections.HashSet
 @Singleton
 class RealTasksRepository @Inject constructor(
     var appExecutors: AppExecutors,
-    var zdoneService: ZdoneService,
-    val taskShowingStrategyProvider: TaskShowerStrategyProvider
+    var zdoneService: ZdoneService
 ) : TasksRepository {
 
     private val taskInfoStore: Store<Unit, Tasks>
@@ -56,7 +55,9 @@ class RealTasksRepository @Inject constructor(
 
     private suspend fun getCachedData(): Flow<StoreResponse<Tasks>> = coroutineScope {
         lastRequestTime = System.currentTimeMillis()
-        taskInfoStore.stream(StoreRequest.cached(Unit, refresh = false))
+        withContext(Dispatchers.IO) {
+            taskInfoStore.stream(StoreRequest.cached(Unit, refresh = false))
+        }
     }
 
     private fun <T> Flow<StoreResponse<Tasks>>.mapToSubField(fieldGetter: Tasks.() -> T): Flow<StoreResponse<T>> {
@@ -78,17 +79,18 @@ class RealTasksRepository @Inject constructor(
         }
     }
 
-    override suspend fun taskCompletedFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
-        return updateTask(taskUpdateInfo)
-    }
-
-    override suspend fun deferTaskFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
-        return updateTask(taskUpdateInfo)
-    }
-
-    private suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> =
+    override suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> =
         coroutineScope {
-            taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
+            withContext(Dispatchers.IO) {
+                taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
+                    .map {
+                        it.dataOrNull()?.let { response ->
+                            // if we are finishing a task
+                            refreshTaskDataFromStore()
+                        }
+                        it
+                    }
+            }
         }
 
     override suspend fun refreshTaskDataFromStore() {

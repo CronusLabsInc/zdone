@@ -1,23 +1,21 @@
 package com.cronus.zdone.home
 
 import android.content.Context
-import android.widget.Toast
 import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
-import com.cronus.zdone.timer.TaskTimerManager
-import com.dropbox.android.external.store4.ResponseOrigin
+import com.cronus.zdone.timer.TaskExecutionManager
 import com.dropbox.android.external.store4.StoreResponse
 import com.wealthfront.magellan.rx2.RxScreen
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class TasksScreen @Inject constructor(
     val tasksRepo: TasksRepository,
-    val taskTimerManager: TaskTimerManager,
+    val taskExecutionManager: TaskExecutionManager,
     val toaster: Toaster
 ) : RxScreen<TasksView>() {
 
@@ -45,10 +43,12 @@ class TasksScreen @Inject constructor(
             tasksRepo.getTasksFromStore()
                 .collect { response ->
                     when (response) {
-                        is StoreResponse.Loading -> {
-                        }
+                        is StoreResponse.Loading -> { toaster.showToast("Loading tasks") }
                         is StoreResponse.Error -> view?.showError(response.error.message)
-                        is StoreResponse.Data -> displayTasks(response.value)
+                        is StoreResponse.Data -> {
+                            val displayedTasks = getDisplayedTasks(response.value)
+                            view?.setTasks(displayedTasks)
+                        }
                     }
                 }
         }
@@ -56,8 +56,7 @@ class TasksScreen @Inject constructor(
             tasksRepo.getTimeDataFromStore()
                 .collect { response ->
                     when (response) {
-                        is StoreResponse.Loading -> {
-                        }
+                        is StoreResponse.Loading -> { }
                         is StoreResponse.Error -> view?.showError(response.error.message)
                         is StoreResponse.Data -> {
                             currentTimeProcess = response.value
@@ -69,21 +68,12 @@ class TasksScreen @Inject constructor(
                             )
                         }
                     }
-                    when (response.origin) {
-                        ResponseOrigin.Cache -> toaster.showToast("Refreshed from cache")
-                        ResponseOrigin.Fetcher -> toaster.showToast("Refreshed from network")
-                    }
                 }
         }
     }
 
     private fun getTimeProgress(timeAllocatedToday: Int, timeCompletedToday: Int) =
         (100 * timeCompletedToday.toDouble() / (timeAllocatedToday + timeCompletedToday)).toInt()
-
-    private fun displayTasks(tasks: List<Task>) {
-        val displayedTasks = getDisplayedTasks(tasks)
-        view?.setTasks(displayedTasks)
-    }
 
     internal fun getDisplayedTasks(tasks: List<Task>): List<DisplayedTask> {
         return tasks.flatMap { task ->
@@ -126,18 +116,12 @@ class TasksScreen @Inject constructor(
     fun taskCompleted(task: DisplayedTask) {
         if (tasksRepo.areTasksFromPreviousDay()) {
             refreshTaskData()
-            activity?.let {
-                Toast.makeText(
-                    it,
-                    "New day has started since last task refresh. Updating tasks now...",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            toaster.showToast("New day has started since last task refresh. Updating tasks now...")
             return
         }
         updateTimeProgress(task)
         mainScope.launch {
-            tasksRepo.taskCompletedFromStore(
+            tasksRepo.updateTask(
                 TasksRepository.TaskUpdateInfo(
                     task.id,
                     task.subtaskId,
@@ -181,7 +165,7 @@ class TasksScreen @Inject constructor(
         inProgressTask?.let {
             if (completedOrDeferredTask == inProgressTask) {
                 inProgressTask = null
-                taskTimerManager.cancelTimer()
+                taskExecutionManager.cancelTasks()
                 view?.setTasksProgressState(TaskProgressState.READY)
             }
         }
@@ -194,7 +178,7 @@ class TasksScreen @Inject constructor(
             return
         }
         mainScope.launch {
-            tasksRepo.deferTaskFromStore(
+            tasksRepo.updateTask(
                 TasksRepository.TaskUpdateInfo(
                     task.id,
                     task.subtaskId,
@@ -232,7 +216,15 @@ class TasksScreen @Inject constructor(
     fun startTask(task: DisplayedTask) {
         view?.setInProgressTask(task)
         inProgressTask = task
-        taskTimerManager.startTimer(task)
+        toaster.showToast("Starting task ${task.name}")
+        mainScope.launch {
+            val tasks = tasksRepo.getTasksFromStore()
+                .map { it.dataOrNull() }
+                .filterNotNull()
+                .first()
+            val apiTask = tasks.filter { it.id == task.id }
+            taskExecutionManager.startTasks(apiTask)
+        }
     }
 
     fun pauseTask(task: DisplayedTask) {
@@ -240,7 +232,7 @@ class TasksScreen @Inject constructor(
         inProgressTask?.let {
             if (task == inProgressTask) {
                 inProgressTask = null
-                taskTimerManager.cancelTimer()
+                taskExecutionManager.cancelTasks()
             }
         }
     }

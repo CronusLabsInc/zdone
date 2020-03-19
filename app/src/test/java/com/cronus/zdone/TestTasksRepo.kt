@@ -27,11 +27,7 @@ class TestTasksRepo : TasksRepository {
         return flowOf(StoreResponse.Data(timeProgress, ResponseOrigin.Cache))
     }
 
-    override suspend fun taskCompletedFromStore(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
-        return flowOf(storeResponseFrom(sucessfulUpdate))
-    }
-
-    override suspend fun deferTaskFromStore(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+    override suspend fun updateTask(taskUpdateInfo: TasksRepository.TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
         return flowOf(storeResponseFrom(sucessfulUpdate))
     }
 

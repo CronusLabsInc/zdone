@@ -1,5 +1,7 @@
 package com.cronus.zdone
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -15,6 +17,12 @@ import com.wealthfront.magellan.support.SingleActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : SingleActivity(), NavigationListener {
+
+    companion object {
+        fun getLaunchIntent(context: Context): Intent {
+            return Intent(context, MainActivity::class.java)
+        }
+    }
 
     val apiTokenManager: ApiTokenManager
 

@@ -3,9 +3,7 @@ package com.cronus.zdone.api
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.home.TasksScreen
 import com.dropbox.android.external.store4.StoreResponse
-import io.reactivex.Observable
 import kotlinx.coroutines.flow.Flow
 
 interface TasksRepository {
@@ -14,9 +12,7 @@ interface TasksRepository {
 
     suspend fun getTimeDataFromStore(): Flow<StoreResponse<TimeProgress>>
 
-    suspend fun taskCompletedFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
-
-    suspend fun deferTaskFromStore(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
+    suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
 
     suspend fun refreshTaskDataFromStore()
 
