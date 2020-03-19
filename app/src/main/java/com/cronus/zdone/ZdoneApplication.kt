@@ -8,12 +8,14 @@ import android.os.Build
 import com.cronus.zdone.dagger.AndroidModule
 import com.cronus.zdone.dagger.AppComponent
 import com.cronus.zdone.dagger.DaggerAppComponent
+import com.cronus.zdone.notification.TaskNotificationManager
 import net.danlew.android.joda.JodaTimeAndroid
 
 class ZdoneApplication : Application() {
 
     lateinit var component: AppComponent
         private set
+    private lateinit var zdoneNotificationManager: TaskNotificationManager
 
     override fun onCreate() {
         super.onCreate()
@@ -23,6 +25,7 @@ class ZdoneApplication : Application() {
                 .build()
         createNotificationChannel()
         JodaTimeAndroid.init(this)
+        zdoneNotificationManager = component.taskNotificationManager()
     }
 
     private fun createNotificationChannel() {
