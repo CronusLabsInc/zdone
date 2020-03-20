@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="@dimen/normalPadding">
@@ -9,21 +10,83 @@
         android:id="@+id/taskName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/hugeText"
         android:text="Timer time"
+        android:textAlignment="center"
+        android:textSize="@dimen/largeText"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/dailyStatsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today's stats"
+        android:textSize="@dimen/smallText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/startTasks"
+        app:layout_constraintBottom_toTopOf="@id/dailyStatsActualMinsWorked"
+        app:layout_constraintVertical_chainStyle="packed"
+        />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/horizontalLeftGuide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/dailyStatsActualMinsWorked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        app:layout_constraintRight_toLeftOf="@id/horizontalLeftGuide"
+        app:layout_constraintTop_toBottomOf="@id/dailyStatsTitle"
+        app:layout_constraintBottom_toTopOf="@id/dailyStatsTasksCompleted"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        tools:text="Actual mins: 5" />
+
+    <TextView
+        android:id="@+id/dailyStatsExpectedMinsWorked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        android:layout_marginLeft="@dimen/normalPadding"
+        app:layout_constraintLeft_toRightOf="@id/dailyStatsActualMinsWorked"
+        app:layout_constraintBaseline_toBaselineOf="@id/dailyStatsActualMinsWorked"
+        tools:text="Expected mins: 15" />
+
+    <TextView
+        android:id="@+id/dailyStatsTasksCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintRight_toRightOf="@id/dailyStatsActualMinsWorked"
+        app:layout_constraintTop_toBottomOf="@id/dailyStatsActualMinsWorked"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="Completed: 3" />
+
+    <TextView
+        android:id="@+id/dailyStatsTasksDeferred"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        app:layout_constraintLeft_toLeftOf="@id/dailyStatsExpectedMinsWorked"
+        app:layout_constraintBaseline_toBaselineOf="@id/dailyStatsTasksCompleted"
+        tools:text="Deferred: 3" />
 
     <TextView
         android:id="@+id/minsRemaining"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="@dimen/extraLargeText"
-        app:layout_constraintVertical_bias=".3"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/colon" />
+        app:layout_constraintRight_toLeftOf="@id/colon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias=".3" />
 
     <TextView
         android:id="@+id/colon"
@@ -31,21 +94,21 @@
         android:layout_height="wrap_content"
         android:text=":"
         android:textSize="@dimen/extraLargeText"
-        app:layout_constraintVertical_bias=".3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias=".3" />
 
     <TextView
         android:id="@+id/secsRemaining"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="@dimen/extraLargeText"
-        app:layout_constraintVertical_bias=".3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/colon"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias=".3" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/startTasks"
@@ -81,9 +144,9 @@
         android:id="@+id/loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

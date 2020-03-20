@@ -6,6 +6,8 @@ import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.UpdateDataResponse
+import com.cronus.zdone.stats.DailyStatsProvider
+import com.cronus.zdone.stats.TaskUpdateType
 import com.dropbox.android.external.store4.StoreResponse
 import kotlinx.coroutines.flow.*
 import java.lang.Math.abs
@@ -13,8 +15,9 @@ import javax.inject.Inject
 
 class TimerScreen @Inject constructor(
     val tasksRepository: TasksRepository,
-    val toaster: Toaster,
-    val taskExecutionManager: TaskExecutionManager
+    val taskExecutionManager: TaskExecutionManager,
+    val dailyStatsProvider: DailyStatsProvider,
+    val toaster: Toaster
 ) : CoroutineScreen<TimerView>() {
 
     override fun createView(context: Context): TimerView =
@@ -52,6 +55,13 @@ class TimerScreen @Inject constructor(
                     view?.setState(viewState)
                 }
         }
+        safeLaunch {
+            dailyStatsProvider.dailyStats
+                .collect {
+                    view?.setDailyStats(it)
+                    toaster.showToast("Worked for ${it.actualSecondsWorked / 60} minutes today")
+                }
+        }
     }
 
     override fun getTitle(context: Context): String {
@@ -70,28 +80,30 @@ class TimerScreen @Inject constructor(
     }
 
     fun completeTask() {
-        udpateCurrentTask("complete")
+        udpateCurrentTask(TaskUpdateType.COMPLETED)
         safeLaunch {
             taskExecutionManager.startNextTask()
         }
     }
 
     fun deferTask() {
-        udpateCurrentTask("defer")
+        udpateCurrentTask(TaskUpdateType.DEFERRED)
         safeLaunch {
             taskExecutionManager.startNextTask()
         }
     }
 
-    private fun udpateCurrentTask(updateType: String) {
+    private fun udpateCurrentTask(updateType: TaskUpdateType) {
         safeLaunch {
             val (currentTask, timeRemaining) = taskExecutionManager.currentTaskExecutionData.first() as TaskExecutionState.TaskRunning
             tasksRepository.updateTask(
                 TasksRepository.TaskUpdateInfo(
-                    currentTask.id,
-                    null,
-                    currentTask.service,
-                    currentTask.lengthMins * 60 - timeRemaining,
+                    id = currentTask.id,
+                    name = currentTask.name,
+                    subtaskId = null,
+                    service = currentTask.service,
+                    expectedDurationSeconds = currentTask.lengthMins * 60L,
+                    actualDurationSeconds = currentTask.lengthMins * 60 - timeRemaining,
                     updateType = updateType
                 )
             )
