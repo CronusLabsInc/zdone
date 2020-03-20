@@ -3,6 +3,7 @@ package com.cronus.zdone.timer
 import android.content.Context
 import android.view.View
 import com.cronus.zdone.R
+import com.cronus.zdone.stats.DailyStats
 import com.cronus.zdone.timer.TimerScreen.TimerState
 import com.cronus.zdone.timer.TimerScreen.ViewState
 import com.wealthfront.magellan.BaseScreenView
@@ -70,7 +71,12 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 
     private fun showInitialState(viewState: ViewState) {
         taskName.text = viewState.taskName
-        startTasks.visibility = View.VISIBLE
+        startTasks.visibility = VISIBLE
+        showDailyStats()
+    }
+
+    private fun showDailyStats() {
+        dailyStatsViews.map { it.visibility = View.VISIBLE }
     }
 
     private fun clearState() {
@@ -86,6 +92,26 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         completeTaskButton.visibility = GONE
         deferTaskButton.visibility = GONE
         loading.visibility = GONE
+        clearDailyStatsState()
+    }
+
+    private val dailyStatsViews = arrayOf(
+        dailyStatsTitle,
+        dailyStatsActualMinsWorked,
+        dailyStatsExpectedMinsWorked,
+        dailyStatsTasksCompleted,
+        dailyStatsTasksDeferred
+    )
+
+    private fun clearDailyStatsState() {
+        dailyStatsViews.map { it.visibility = GONE }
+    }
+
+    fun setDailyStats(stats: DailyStats) {
+        dailyStatsActualMinsWorked.text = "Mins worked: ${stats.actualSecondsWorked / 60}"
+        dailyStatsExpectedMinsWorked.text = "Expected: ${stats.expectedSecondsWorked / 60}"
+        dailyStatsTasksCompleted.text = "Completed: ${stats.numTasksCompleted}"
+        dailyStatsTasksDeferred.text = "Deferred: ${stats.numTasksDeferred}"
     }
 
 }

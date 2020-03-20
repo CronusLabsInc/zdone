@@ -6,6 +6,7 @@ import android.os.IBinder
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.ZdoneApplication
 import com.cronus.zdone.api.TasksRepository
+import com.cronus.zdone.stats.TaskUpdateType
 import com.cronus.zdone.timer.TaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionState
 import com.dropbox.android.external.store4.StoreResponse
@@ -23,9 +24,9 @@ class UpdateTaskService : Service() {
         val UPDATE_TYPE_INTENT_KEY = "UPDATE_TYPE"
     }
 
-    enum class RequestCodes(val code: Int, val updateType: String) {
-        COMPLETED(4224, "complete"),
-        DEFERRED(4225, "defer")
+    enum class RequestCodes(val code: Int, val updateType: TaskUpdateType) {
+        COMPLETED(4224, TaskUpdateType.COMPLETED),
+        DEFERRED(4225, TaskUpdateType.DEFERRED)
     }
 
     @Inject
@@ -52,18 +53,20 @@ class UpdateTaskService : Service() {
         return result
     }
 
-    private fun updateCurrentTask(updateType: String) {
+    private fun updateCurrentTask(updateType: TaskUpdateType) {
         if (job == null) {
             job = CoroutineScope(Dispatchers.Main).launch {
                 val (task, secsRemaining) = taskExecutionManager.currentTaskExecutionData
                     .filterIsInstance<TaskExecutionState.TaskRunning>()
                     .first()
                 tasksRepository.updateTask(TasksRepository.TaskUpdateInfo(
-                    task.id,
-                    null,
-                    task.service,
-                    task.lengthMins * 60 - secsRemaining,
-                    updateType
+                    id = task.id,
+                    name = task.name,
+                    subtaskId = null,
+                    service = task.service,
+                    expectedDurationSeconds = task.lengthMins * 60L,
+                    actualDurationSeconds = task.lengthMins * 60 - secsRemaining,
+                    updateType = updateType
                 )).collect {
                     when (it) {
                         is StoreResponse.Loading -> toaster.showToast("update ${task.name}: $updateType")

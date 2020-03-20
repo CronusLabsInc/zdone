@@ -6,6 +6,7 @@ import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
+import com.cronus.zdone.stats.TaskUpdateType
 import com.cronus.zdone.timer.TaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionState
 import com.dropbox.android.external.store4.StoreResponse
@@ -136,11 +137,13 @@ class TasksScreen @Inject constructor(
         mainScope.launch {
             tasksRepo.updateTask(
                 TasksRepository.TaskUpdateInfo(
-                    task.id,
-                    task.subtaskId,
-                    task.service,
-                    null,
-                    updateType = "complete"))
+                    id = task.id,
+                    name = task.name,
+                    subtaskId = task.subtaskId,
+                    service = task.service,
+                    expectedDurationSeconds = task.lengthMins * 60L,
+                    actualDurationSeconds = null,
+                    updateType = TaskUpdateType.COMPLETED))
                 .collect { completedResult ->
                     when (completedResult) {
                         is StoreResponse.Loading -> toaster.showToast("Telling server task complete")
@@ -193,11 +196,13 @@ class TasksScreen @Inject constructor(
         mainScope.launch {
             tasksRepo.updateTask(
                 TasksRepository.TaskUpdateInfo(
-                    task.id,
-                    task.subtaskId,
-                    task.service,
-                    null,
-                    updateType = "defer"))
+                    id = task.id,
+                    name = task.name,
+                    subtaskId = task.subtaskId,
+                    service = task.service,
+                    expectedDurationSeconds = task.lengthMins * 60L,
+                    actualDurationSeconds = null,
+                    updateType = TaskUpdateType.DEFERRED))
                 .collect { deferralResult ->
                     when (deferralResult) {
                         is StoreResponse.Loading -> toaster.showToast("Deferring task")

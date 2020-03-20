@@ -3,24 +3,23 @@ package com.cronus.zdone.api
 import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.api.TasksRepository.*
 import com.cronus.zdone.api.model.*
-import com.cronus.zdone.home.TaskShowerStrategyProvider
-import com.cronus.zdone.home.TasksScreen
+import com.cronus.zdone.stats.TaskEvent
+import com.cronus.zdone.stats.TaskEventsDao
+import com.cronus.zdone.stats.TaskUpdateType
 import com.dropbox.android.external.store4.*
 import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.collections.HashSet
 
 @Singleton
 class RealTasksRepository @Inject constructor(
-    var appExecutors: AppExecutors,
-    var zdoneService: ZdoneService
+    private val appExecutors: AppExecutors,
+    private val zdoneService: ZdoneService,
+    private val taskEventsDao: TaskEventsDao
 ) : TasksRepository {
 
     private val taskInfoStore: Store<Unit, Tasks>
@@ -37,9 +36,9 @@ class RealTasksRepository @Inject constructor(
                 TaskStatusUpdate(
                     id = taskUpdateInfo.id,
                     subtaskId = taskUpdateInfo.subtaskId,
-                    update = taskUpdateInfo.updateType,
+                    update = taskUpdateInfo.updateType.toApiUpdateType(),
                     service = taskUpdateInfo.service,
-                    duration_seconds = taskUpdateInfo.duration_seconds
+                    duration_seconds = taskUpdateInfo.actualDurationSeconds
                 )
             )
         }
@@ -80,18 +79,38 @@ class RealTasksRepository @Inject constructor(
     }
 
     override suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> =
-        coroutineScope {
-            withContext(Dispatchers.IO) {
-                taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
-                    .map {
-                        it.dataOrNull()?.let { response ->
-                            // if we are finishing a task
-                            refreshTaskDataFromStore()
-                        }
-                        it
-                    }
+        withContext(Dispatchers.IO) {
+            launch {
+                insertTaskEventIntoDao(taskUpdateInfo)
             }
+            sendTaskUpdateToApi(taskUpdateInfo)
         }
+
+    private fun sendTaskUpdateToApi(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
+            .map {
+                it.dataOrNull()?.let { _ ->
+                    // if we are finishing a task
+                    refreshTaskDataFromStore()
+                }
+                it
+            }
+    }
+
+    private fun insertTaskEventIntoDao(taskUpdateInfo: TaskUpdateInfo) {
+        taskUpdateInfo.actualDurationSeconds?.let { taskDurationSecs ->
+            taskEventsDao.addTaskEvent(
+                TaskEvent(
+                    taskID = taskUpdateInfo.id,
+                    taskName = taskUpdateInfo.name,
+                    taskResult = taskUpdateInfo.updateType,
+                    expectedDurationSecs = taskUpdateInfo.expectedDurationSeconds,
+                    durationSecs = taskDurationSecs,
+                    completedAtMillis = System.currentTimeMillis()
+                )
+            )
+        }
+    }
 
     override suspend fun refreshTaskDataFromStore() {
         taskInfoStore.fresh(Unit)
@@ -114,4 +133,9 @@ class RealTasksRepository @Inject constructor(
             .observeOn(appExecutors.mainThread())
     }
 
+}
+
+private fun TaskUpdateType.toApiUpdateType() = when (this) {
+    TaskUpdateType.COMPLETED -> "complete"
+    TaskUpdateType.DEFERRED -> "defer"
 }
