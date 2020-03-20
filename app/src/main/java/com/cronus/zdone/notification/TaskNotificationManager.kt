@@ -1,13 +1,13 @@
 package com.cronus.zdone.notification
 
-import android.content.Context
-import android.content.Intent
-import com.cronus.zdone.service.TaskTimerForegroundService
+import androidx.annotation.VisibleForTesting
+import com.cronus.zdone.AppDispatchers
 import com.cronus.zdone.timer.TaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionState
 import com.cronus.zdone.util.Do
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,29 +15,34 @@ import javax.inject.Singleton
 
 // Shows ongoing notification for task in progress, with ability to complete/defer directly from the notification
 @Singleton
-class TaskNotificationManager @Inject constructor(private val context: Context, taskExecutionManager: TaskExecutionManager) {
+class TaskNotificationManager @VisibleForTesting internal constructor(private val notificationShower: TaskNotificationShower) {
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
+    companion object {
+
+        fun from(notificationShower: TaskNotificationShower, taskExecutionManager: TaskExecutionManager): TaskNotificationManager {
+            val notificationManager = TaskNotificationManager(notificationShower)
+            notificationManager.listenForEvents(taskExecutionManager)
+            return notificationManager
+        }
+
+    }
+
+    fun listenForEvents(taskExecutionManager: TaskExecutionManager) {
+        CoroutineScope(Dispatchers.Main).launch {
             taskExecutionManager.currentTaskExecutionData
                 .collect {
-                    Do exhaustive when (it) {
-                        TaskExecutionState.WaitingForTasks -> clearNotifications()
-                        is TaskExecutionState.TaskRunning -> showRunningTaskNotification()
-                        TaskExecutionState.AllTasksCompleted -> clearNotifications()
-                    }
+                    handleTaskExecutionState(it)
                 }
         }
     }
 
-    private fun showRunningTaskNotification() {
-        val intent = Intent(context, TaskTimerForegroundService::class.java)
-        context.startService(intent)
-    }
-
-    private fun clearNotifications() {
-        context.stopService(Intent(context, TaskTimerForegroundService::class.java))
+    @VisibleForTesting
+    internal fun handleTaskExecutionState(it: TaskExecutionState) {
+        Do exhaustive when (it) {
+            TaskExecutionState.WaitingForTasks -> notificationShower.hideNotification()
+            is TaskExecutionState.TaskRunning -> notificationShower.showNotification()
+            TaskExecutionState.AllTasksCompleted -> notificationShower.hideNotification()
+        }
     }
 
 }
-
