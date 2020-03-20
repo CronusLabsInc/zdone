@@ -1,11 +1,15 @@
 package com.cronus.zdone.dagger
 
+import com.cronus.zdone.AppDispatchers
 import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.AppExecutorsImpl
+import com.cronus.zdone.RealAppDispatchers
 import com.cronus.zdone.api.AuthInterceptor
 import com.cronus.zdone.api.RealTasksRepository
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.ZdoneService
+import com.cronus.zdone.notification.TaskNotificationManager
+import com.cronus.zdone.notification.TaskNotificationShower
 import com.cronus.zdone.timer.RealTaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionManager
 import dagger.Binds
@@ -38,6 +42,10 @@ class AppModule {
         @Binds
         @Singleton
         fun taskExecutionManager(realTaskExecutionManager: RealTaskExecutionManager): TaskExecutionManager
+
+        @Binds
+        fun appDispatchers(realAppDispatchers: RealAppDispatchers): AppDispatchers
+
     }
 
     @Provides
@@ -67,5 +75,11 @@ class AppModule {
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         return loggingInterceptor
     }
+
+    @Provides
+    fun taskNotificationManager(
+        notificationShower: TaskNotificationShower,
+        taskExecutionManager: TaskExecutionManager
+    ) = TaskNotificationManager.from(notificationShower, taskExecutionManager)
 
 }
