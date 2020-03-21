@@ -10,6 +10,7 @@ import com.cronus.zdone.Toaster
 import com.cronus.zdone.notification.OngoingNotificationShower
 import com.cronus.zdone.notification.TaskNotificationShower
 import com.cronus.zdone.stats.TaskEventsDatabase
+import com.cronus.zdone.stats.fake.FakeTaskEventsDao
 import com.cronus.zdone.stats.migrations.Migration1to2
 import dagger.Binds
 import dagger.Module
@@ -44,7 +45,8 @@ class AndroidModule(val context: Context) {
     }
 
     @Provides
-    fun taskEventsDao(taskEventsDatabase: TaskEventsDatabase) = taskEventsDatabase.taskEventsDao()
+    fun taskEventsDao(taskEventsDatabase: TaskEventsDatabase) =
+        if (BuildConfig.DEBUG) FakeTaskEventsDao() else taskEventsDatabase.taskEventsDao()
 
     @Module
     interface Bindings {
