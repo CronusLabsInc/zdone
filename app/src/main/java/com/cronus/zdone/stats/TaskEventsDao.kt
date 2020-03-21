@@ -1,9 +1,6 @@
 package com.cronus.zdone.stats
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import com.cronus.zdone.api.TasksRepository
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,5 +14,11 @@ interface TaskEventsDao {
 
     @Insert
     fun addTaskEvent(taskEvent: TaskEvent)
+
+    @Update
+    fun updateEvent(taskEvent: TaskEvent)
+
+    @Delete
+    fun deleteEvent(taskEvent: TaskEvent)
 
 }

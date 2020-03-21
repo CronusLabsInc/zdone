@@ -8,12 +8,10 @@ import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -72,8 +70,11 @@ class RealTaskExecutionManager @Inject constructor() : TaskExecutionManager {
         _currentTaskExecutionData.onNext(TaskExecutionState.AllTasksCompleted)
     }
 
-    private suspend fun startTask(task: Task) = coroutineScope {
-        currentTaskJob = launch {
+    private suspend fun startTask(task: Task) {
+        _currentTaskExecutionData.onNext(
+            TaskExecutionState.TaskRunning(task, task.lengthMins * 60L)
+        )
+        currentTaskJob = CoroutineScope(Dispatchers.Default).launch {
             TaskTimerFactory().ofFlow(task.lengthMins)
                 .map { timeRemaining ->
                     _currentTaskExecutionData.onNext(

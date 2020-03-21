@@ -19,7 +19,7 @@ class TaskTimerFactory @Inject constructor() {
 
     suspend fun ofFlow(lengthMins: Int): Flow<Long> = coroutineScope {
         Flowable.interval(1, TimeUnit.SECONDS)
-            .map { lengthMins * 60L - it }
+            .map { lengthMins * 60L - (it + 1) } // + 1 here because we emit the first second synchronously
             .asFlow()
             .flowOn(Dispatchers.IO)
     }

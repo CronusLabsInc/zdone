@@ -34,9 +34,9 @@ class TaskTimerForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val result =  super.onStartCommand(intent, flags, startId)
-        (application as ZdoneApplication).component.inject(this)
+        ZdoneApplication.get().component.inject(this)
         if (timerJob == null) {
-            timerJob = CoroutineScope(Dispatchers.IO).launch {
+            timerJob = CoroutineScope(Dispatchers.Default).launch {
                 taskExecutionManager.currentTaskExecutionData.collect { taskState ->
                     Do exhaustive when(taskState) {
                         TaskExecutionState.WaitingForTasks -> stopSelf()
@@ -46,15 +46,12 @@ class TaskTimerForegroundService : Service() {
                 }
             }
         }
-
         return result
     }
 
     private fun updateNotification(task: Task, timeRemainingSecs: Long) {
-        val completedIntent = Intent(applicationContext, UpdateTaskService::class.java)
-        completedIntent.putExtra(UpdateTaskService.UPDATE_TYPE_INTENT_KEY, UpdateTaskService.RequestCodes.COMPLETED.name)
-        val deferIntent = Intent(applicationContext, UpdateTaskService::class.java)
-        deferIntent.putExtra(UpdateTaskService.UPDATE_TYPE_INTENT_KEY, UpdateTaskService.RequestCodes.DEFERRED.name)
+        val completedIntent = getUpdateIntent(UpdateTaskService.RequestCodes.COMPLETED)
+        val deferIntent = getUpdateIntent(UpdateTaskService.RequestCodes.DEFERRED)
 
         val builder =
             NotificationCompat.Builder(applicationContext, ZdoneApplication.CHANNEL_ID)
@@ -62,7 +59,7 @@ class TaskTimerForegroundService : Service() {
                 .setSmallIcon(R.drawable.ic_zdone_notification_logo_2)
                 .setContentTitle(getTitleForRemainingTime(task.name, timeRemainingSecs))
                 .setContentText(formattedTimeString(timeRemainingSecs))
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .addAction(0, "Completed", PendingIntent.getService(
                     applicationContext,
                     12345123,
@@ -81,7 +78,13 @@ class TaskTimerForegroundService : Service() {
                         0
                     )
                 )
-        NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, builder.build())
+        startForeground(NOTIFICATION_ID, builder.build())
+    }
+
+    private fun getUpdateIntent(updateType: UpdateTaskService.RequestCodes): Intent {
+        val updateIntent = Intent(applicationContext, UpdateTaskService::class.java)
+        updateIntent.putExtra(UpdateTaskService.UPDATE_TYPE_INTENT_KEY, updateType.name)
+        return updateIntent
     }
 
     private fun getTitleForRemainingTime(taskName: String, timeRemainingSecs: Long): CharSequence? =
@@ -92,6 +95,7 @@ class TaskTimerForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        stopForeground(true)
         NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID)
         timerJob?.cancel()
         super.onDestroy()

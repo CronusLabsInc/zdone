@@ -26,6 +26,7 @@ class HomeScreen @Inject constructor(timerScreen: TimerScreen, tasksScreen: Task
 
     override fun onUpdateMenu(menu: Menu) {
         menu.findItem(R.id.settings).setVisible(true)
+        menu.findItem(R.id.dailyStatsMenuItem).setVisible(true)
     }
 
 
