@@ -1,11 +1,10 @@
 package com.cronus.zdone.dagger
 
-import android.view.ViewGroup
 import com.cronus.zdone.home.HomeScreen
 import com.cronus.zdone.login.LoginScreen
 import com.cronus.zdone.settings.SettingsScreen
 import com.cronus.zdone.stats.DailyStatsScreen
-import com.wealthfront.magellan.Screen
+import com.cronus.zdone.stats.log.DailyStatsLogScreen
 import dagger.Subcomponent
 
 @Subcomponent(modules = arrayOf(

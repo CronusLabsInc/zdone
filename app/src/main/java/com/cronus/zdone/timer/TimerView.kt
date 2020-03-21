@@ -1,15 +1,13 @@
 package com.cronus.zdone.timer
 
 import android.content.Context
-import android.util.AttributeSet
 import android.view.View
 import com.cronus.zdone.R
-import com.cronus.zdone.stats.DailyStats
+import com.cronus.zdone.stats.summary.DailyStatsSummary
 import com.cronus.zdone.timer.TimerScreen.TimerState
 import com.cronus.zdone.timer.TimerScreen.ViewState
 import com.wealthfront.magellan.BaseScreenView
 import kotlinx.android.synthetic.main.timer.view.*
-import net.danlew.android.joda.JodaTimeAndroid.init
 
 class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 
@@ -109,11 +107,11 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         dailyStatsViews.map { it.visibility = GONE }
     }
 
-    fun setDailyStats(stats: DailyStats) {
-        dailyStatsActualMinsWorked.text = "Mins worked: ${stats.actualSecondsWorked / 60}"
-        dailyStatsExpectedMinsWorked.text = "Expected: ${stats.expectedSecondsWorked / 60}"
-        dailyStatsTasksCompleted.text = "Completed: ${stats.numTasksCompleted}"
-        dailyStatsTasksDeferred.text = "Deferred: ${stats.numTasksDeferred}"
+    fun setDailyStats(statsSummary: DailyStatsSummary) {
+        dailyStatsActualMinsWorked.text = "Mins worked: ${statsSummary.actualSecondsWorked / 60}"
+        dailyStatsExpectedMinsWorked.text = "Expected: ${statsSummary.expectedSecondsWorked / 60}"
+        dailyStatsTasksCompleted.text = "Completed: ${statsSummary.numTasksCompleted}"
+        dailyStatsTasksDeferred.text = "Deferred: ${statsSummary.numTasksDeferred}"
     }
 
 }

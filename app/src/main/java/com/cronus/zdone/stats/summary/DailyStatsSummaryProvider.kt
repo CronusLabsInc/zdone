@@ -1,25 +1,27 @@
-package com.cronus.zdone.stats
+package com.cronus.zdone.stats.summary
 
+import com.cronus.zdone.stats.TaskEventsDao
+import com.cronus.zdone.stats.TaskUpdateType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.joda.time.LocalDate
 import javax.inject.Inject
 
-interface DailyStatsProvider {
+interface DailyStatsSummaryProvider {
 
-    val dailyStats: Flow<DailyStats>
+    val dailyStatsSummary: Flow<DailyStatsSummary>
 }
 
-data class DailyStats(
+data class DailyStatsSummary(
     val actualSecondsWorked: Long,
     val expectedSecondsWorked: Long,
     val numTasksCompleted: Int,
     val numTasksDeferred: Int
 )
 
-class RealDailyStatsProvider @Inject constructor(taskEventsDao: TaskEventsDao)
-    : DailyStatsProvider {
-    override val dailyStats: Flow<DailyStats> = taskEventsDao.getTaskEvents()
+class RealDailyStatsSummaryProvider @Inject constructor(taskEventsDao: TaskEventsDao)
+    : DailyStatsSummaryProvider {
+    override val dailyStatsSummary: Flow<DailyStatsSummary> = taskEventsDao.getTaskEvents()
         .map { list ->
             val startOfDayMillis = LocalDate.now().toDateTimeAtStartOfDay().millis
             list.filter { event ->
@@ -29,7 +31,7 @@ class RealDailyStatsProvider @Inject constructor(taskEventsDao: TaskEventsDao)
             val expectedSecondsWorked = it.map { it.expectedDurationSecs }.sum()
             val tasksCompleted = it.filter { it.taskResult == TaskUpdateType.COMPLETED }.size
             val tasksDeferred = it.filter { it.taskResult == TaskUpdateType.DEFERRED }.size
-            DailyStats(
+            DailyStatsSummary(
                 actualSecondsWorked = actualSecondsWorked,
                 expectedSecondsWorked = expectedSecondsWorked,
                 numTasksCompleted = tasksCompleted,

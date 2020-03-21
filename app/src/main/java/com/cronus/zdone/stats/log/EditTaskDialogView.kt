@@ -1,16 +1,12 @@
-package com.cronus.zdone.stats
+package com.cronus.zdone.stats.log
 
-import android.app.Activity
 import android.content.Context
-import android.net.wifi.p2p.WifiP2pManager
-import android.view.View
 import android.widget.FrameLayout
 import com.cronus.zdone.R
+import com.cronus.zdone.stats.TaskEvent
 import kotlinx.android.synthetic.main.edit_task_dialog.view.*
-import kotlinx.android.synthetic.main.task_event_item.view.*
 import kotlinx.android.synthetic.main.task_event_item.view.task_duration_mins
 import kotlinx.android.synthetic.main.task_event_item.view.task_end_time
-import kotlinx.android.synthetic.main.task_item.view.*
 import kotlinx.android.synthetic.main.task_item.view.task_name
 import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
@@ -49,13 +45,15 @@ interface EditActionListener {
         newName: String,
         newDurationMinsString: String,
         newEndTimeString: String,
-        oldTaskEvent: TaskEvent)
+        oldTaskEvent: TaskEvent
+    )
 
     fun deleteTask(taskEvent: TaskEvent)
 
 }
 
-private fun TaskEvent.getEndTime(): String = getFormattedTimeString(completedAtMillis)
+private fun TaskEvent.getEndTime(): String =
+    getFormattedTimeString(completedAtMillis)
 
 private fun getFormattedTimeString(startedAtMillis: Long): String {
     val localDateTime = LocalDateTime(startedAtMillis)

@@ -6,7 +6,7 @@ import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.UpdateDataResponse
-import com.cronus.zdone.stats.DailyStatsProvider
+import com.cronus.zdone.stats.summary.DailyStatsSummaryProvider
 import com.cronus.zdone.stats.TaskUpdateType
 import com.dropbox.android.external.store4.StoreResponse
 import kotlinx.coroutines.flow.*
@@ -16,7 +16,7 @@ import javax.inject.Inject
 class TimerScreen @Inject constructor(
     val tasksRepository: TasksRepository,
     val taskExecutionManager: TaskExecutionManager,
-    val dailyStatsProvider: DailyStatsProvider,
+    val dailyStatsSummaryProvider: DailyStatsSummaryProvider,
     val toaster: Toaster
 ) : CoroutineScreen<TimerView>() {
 
@@ -56,7 +56,7 @@ class TimerScreen @Inject constructor(
                 }
         }
         safeLaunch {
-            dailyStatsProvider.dailyStats
+            dailyStatsSummaryProvider.dailyStatsSummary
                 .collect {
                     view?.setDailyStats(it)
                     toaster.showToast("Worked for ${it.actualSecondsWorked / 60} minutes today")
