@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/largePadding"
@@ -14,7 +15,7 @@
       app:layout_constraintBottom_toTopOf="@+id/appName"
       app:layout_constraintLeft_toLeftOf="parent"
       app:layout_constraintRight_toRightOf="parent"
-      />
+      android:contentDescription="@string/login_logo_content_description" />
 
   <TextView
       android:id="@+id/appName"
@@ -49,7 +50,10 @@
       android:hint="@string/enter_your_api_key"
       android:layout_marginTop="@dimen/largePadding"
       app:layout_constraintTop_toBottomOf="@id/appSlogan"
-      />
+      android:importantForAutofill="yes"
+      android:autofillHints="password"
+      android:inputType="textVisiblePassword"
+      tools:targetApi="o" />
 
   <Button
       android:id="@+id/submitApiKeyButton"
@@ -69,7 +73,7 @@
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintLeft_toLeftOf="parent"
       app:layout_constraintRight_toRightOf="parent"
-      android:text="Continue With Test Account"
+      android:text="@string/login_continue_with_test_account"
       />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

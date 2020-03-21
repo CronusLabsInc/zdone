@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <dimen name="normalPadding">16dp</dimen>
-  <dimen name="cardHeight">8dp</dimen>
   <dimen name="smallText">16sp</dimen>
   <dimen name="normalText">20sp</dimen>
   <dimen name="largeText">24sp</dimen>

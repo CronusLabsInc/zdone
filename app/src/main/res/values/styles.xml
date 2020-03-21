@@ -9,9 +9,4 @@
         <item name="android:textColor">@color/textPrimary</item>
     </style>
 
-    <style name="ZdoneButton" parent="Widget.AppCompat.Button.Colored">
-        <item name="android:color">@color/colorPrimary</item>
-        <item name="android:textColor">@android:color/white</item>
-    </style>
-
 </resources>

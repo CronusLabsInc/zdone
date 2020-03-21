@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -13,12 +14,16 @@
         <EditText
             android:id="@+id/apiKeyEditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="@string/api_key_settings_hint"
+            android:autofillHints="password"
+            android:inputType="text"
+            tools:targetApi="o" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="API Key" />
+            android:text="@string/api_key" />
 
     </LinearLayout>
 
@@ -31,12 +36,15 @@
             android:id="@+id/workTimeMinsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number" />
+            android:inputType="number"
+            android:importantForAutofill="no"
+            android:hint="@string/work_mins_setting_hint"
+            />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Max Work Time per Day (mins)" />
+            android:text="@string/settings_max_work_time_per_day_mins" />
 
     </LinearLayout>
 
@@ -51,7 +59,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/textPrimary"
-            android:text="Large Fingers Mode" />
+            android:text="@string/settings_large_fingers_mode" />
 
     </LinearLayout>
 
@@ -66,12 +74,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/textPrimary"
-            android:text="Section Tasks By Time of Day" />
+            android:text="@string/settings_section_tasks_by_time_of_day" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Only show morning tasks during morning routine, only show current day tasks during day, only show evening tasks in evening"/>
+            android:text="@string/settings_section_tasks_by_tod_description"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -84,7 +93,7 @@
             android:id="@+id/logoutButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Log Out" />
+            android:text="@string/settings_log_out" />
     </LinearLayout>
 
 </LinearLayout>
