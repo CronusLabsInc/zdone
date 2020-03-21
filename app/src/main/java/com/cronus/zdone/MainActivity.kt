@@ -53,6 +53,7 @@ class MainActivity : SingleActivity(), NavigationListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.settings -> getNavigator().goTo(ScreenInjector.get().settingsScreen())
+            R.id.dailyStatsMenuItem -> getNavigator().goTo(ScreenInjector.get().dailyStatsScreen())
         }
         return super.onOptionsItemSelected(item)
     }

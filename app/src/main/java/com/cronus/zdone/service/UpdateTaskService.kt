@@ -56,35 +56,39 @@ class UpdateTaskService : Service() {
     private fun updateCurrentTask(updateType: TaskUpdateType) {
         if (job == null) {
             job = CoroutineScope(Dispatchers.Main).launch {
-                val (task, secsRemaining) = taskExecutionManager.currentTaskExecutionData
-                    .filterIsInstance<TaskExecutionState.TaskRunning>()
-                    .first()
-                tasksRepository.updateTask(TasksRepository.TaskUpdateInfo(
-                    id = task.id,
-                    name = task.name,
-                    subtaskId = null,
-                    service = task.service,
-                    expectedDurationSeconds = task.lengthMins * 60L,
-                    actualDurationSeconds = task.lengthMins * 60 - secsRemaining,
-                    updateType = updateType
-                )).collect {
-                    when (it) {
-                        is StoreResponse.Loading -> toaster.showToast("update ${task.name}: $updateType")
-                        is StoreResponse.Data -> {
-                            var message = ""
-                            if (it.value.result == "success") {
-                                message = "Updated ${task.name} to: $updateType"
-                                taskExecutionManager.startNextTask()
-                            } else {
-                                message = "Failed to update ${task.name}, please try again later"
-                            }
-                            job = null
-                        }
-                        is StoreResponse.Error -> {
-                            toaster.showToast("Failed to update ${task.name}, please try again later")
-                            job = null
-                        }
+                launch { updateTaskOnServer(updateType) }
+                launch { taskExecutionManager.startNextTask() }
+            }
+        }
+    }
+
+    private suspend fun updateTaskOnServer(updateType: TaskUpdateType) {
+        val (task, secsRemaining) = taskExecutionManager.currentTaskExecutionData
+            .filterIsInstance<TaskExecutionState.TaskRunning>()
+            .first()
+        tasksRepository.updateTask(TasksRepository.TaskUpdateInfo(
+            id = task.id,
+            name = task.name,
+            subtaskId = null,
+            service = task.service,
+            expectedDurationSeconds = task.lengthMins * 60L,
+            actualDurationSeconds = task.lengthMins * 60 - secsRemaining,
+            updateType = updateType
+        )).collect {
+            when (it) {
+                is StoreResponse.Loading -> toaster.showToast("update ${task.name}: $updateType")
+                is StoreResponse.Data -> {
+                    var message = ""
+                    if (it.value.result == "success") {
+                        message = "Updated ${task.name} to: $updateType"
+                    } else {
+                        message = "Failed to update ${task.name}, please try again later"
                     }
+                    job = null
+                }
+                is StoreResponse.Error -> {
+                    toaster.showToast("Failed to update ${task.name}, please try again later")
+                    job = null
                 }
             }
         }

@@ -27,7 +27,7 @@ import kotlinx.android.synthetic.main.tasks.view.*
 class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
     BaseScreenView<TasksScreen>(context) {
 
-    val tasksListAdapter: TasksListAdapter
+    private val tasksListAdapter: TasksListAdapter
 
     init {
         View.inflate(context, R.layout.tasks, this)
@@ -115,7 +115,7 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
         tasksListAdapter.setTasksProgressState(taskProgressState)
     }
 
-    class TasksListAdapter(val largeFingersModeEnabled: Boolean) :
+    private class TasksListAdapter(val largeFingersModeEnabled: Boolean) :
         ListAdapter<DisplayedTask, TasksListAdapter.TaskViewHolder>(
             TaskDiffer()
         ) {
@@ -236,7 +236,7 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
             }
         }
 
-        class TaskViewHolder(view: View, isSubtask: Boolean) : RecyclerView.ViewHolder(view) {
+        private class TaskViewHolder(view: View, isSubtask: Boolean) : RecyclerView.ViewHolder(view) {
 
             val taskNameView = view.findViewById<TextView>(R.id.task_name)
             val taskCompletedCheckbox = view.findViewById<CheckBox>(R.id.task_completed)
@@ -267,7 +267,7 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
 
         }
 
-        class TaskDiffer : DiffUtil.ItemCallback<DisplayedTask>() {
+        private class TaskDiffer : DiffUtil.ItemCallback<DisplayedTask>() {
             override fun areItemsTheSame(oldItem: DisplayedTask, newItem: DisplayedTask): Boolean {
                 return oldItem.equals(newItem)
             }

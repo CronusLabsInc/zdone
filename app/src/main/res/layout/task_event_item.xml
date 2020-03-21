@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/normalPadding">
+
+    <TextView
+        android:id="@+id/task_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/guideline33"
+        app:layout_constraintBaseline_toBaselineOf="@id/edit_task_event"
+        tools:text="Reading" />
+
+    <TextView
+        android:id="@+id/task_start_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="@dimen/largePadding"
+        app:layout_constraintLeft_toRightOf="@id/guideline33"
+        app:layout_constraintBaseline_toBaselineOf="@id/edit_task_event"
+        tools:text="08:53" />
+
+    <TextView
+        android:id="@+id/task_end_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="@dimen/largePadding"
+        app:layout_constraintLeft_toRightOf="@id/guideline50"
+        app:layout_constraintBaseline_toBaselineOf="@id/edit_task_event"
+        tools:text="08:57" />
+
+    <TextView
+        android:id="@+id/task_duration_mins"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/guideline67"
+        app:layout_constraintBaseline_toBaselineOf="@id/edit_task_event"
+        tools:text="4 mins" />
+
+    <Button
+        android:id="@+id/edit_task_event"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Edit"
+        android:textColor="@color/colorAccent"
+        android:textAllCaps="false" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline33"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".33" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".50" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline67"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".67" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

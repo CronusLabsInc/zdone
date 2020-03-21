@@ -71,7 +71,7 @@ class TasksScreen @Inject constructor(
                 .collect { response ->
                     when (response) {
                         is StoreResponse.Loading -> { }
-                        is StoreResponse.Error -> view?.showError(response.error.message)
+                        is StoreResponse.Error -> { }
                         is StoreResponse.Data -> {
                             currentTimeProcess = response.value
                             view?.setTimeProgress(
