@@ -1,6 +1,7 @@
 package com.cronus.zdone.timer
 
 import android.content.Context
+import android.util.AttributeSet
 import android.view.View
 import com.cronus.zdone.R
 import com.cronus.zdone.stats.DailyStats
@@ -8,6 +9,7 @@ import com.cronus.zdone.timer.TimerScreen.TimerState
 import com.cronus.zdone.timer.TimerScreen.ViewState
 import com.wealthfront.magellan.BaseScreenView
 import kotlinx.android.synthetic.main.timer.view.*
+import net.danlew.android.joda.JodaTimeAndroid.init
 
 class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
 

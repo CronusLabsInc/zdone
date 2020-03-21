@@ -5,8 +5,8 @@
 
   <item
     android:id="@+id/dailyStatsMenuItem"
-      android:title="Daily Stats"
-      app:showAsAction="always"
+      android:title="@string/daily_stats"
+      app:showAsAction="ifRoom"
       android:icon="@drawable/daily_stats_menu_logo"
       app:iconTint="@android:color/white"
     />
@@ -14,7 +14,7 @@
   <item
       android:id="@+id/settings"
       android:title="@string/settings"
-      app:showAsAction="always"
+      app:showAsAction="ifRoom"
       android:icon="@drawable/settings"
       app:iconTint="@android:color/white"
       />

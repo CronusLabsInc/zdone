@@ -56,7 +56,7 @@ class TaskTimerForegroundService : Service() {
         val builder =
             NotificationCompat.Builder(applicationContext, ZdoneApplication.CHANNEL_ID)
                 .setOnlyAlertOnce(true)
-                .setSmallIcon(R.drawable.ic_zdone_notification_logo_2)
+                .setSmallIcon(R.drawable.ic_zdone_notification_logo)
                 .setContentTitle(getTitleForRemainingTime(task.name, timeRemainingSecs))
                 .setContentText(formattedTimeString(timeRemainingSecs))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

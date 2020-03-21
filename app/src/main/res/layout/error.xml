@@ -16,13 +16,13 @@
       app:layout_constraintBottom_toTopOf="@id/errorTitle"
       app:layout_constraintLeft_toLeftOf="parent"
       app:layout_constraintRight_toRightOf="parent"
-      />
+      android:contentDescription="@string/error_logo_content_description" />
 
   <TextView
       android:id="@+id/errorTitle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="An error occurred. Please try again."
+      android:text="@string/error_title"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintVertical_bias=".25"
