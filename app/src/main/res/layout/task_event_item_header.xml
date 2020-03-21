@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="@dimen/normalPadding">
+    android:padding="@dimen/smallPadding">
 
     <TextView
         android:id="@+id/task_name_header"
@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:text="Task"
         android:textStyle="bold"
+        android:textSize="@dimen/normalText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,6 +24,7 @@
         android:paddingRight="@dimen/largePadding"
         android:text="Start"
         android:textStyle="bold"
+        android:textSize="@dimen/normalText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/guideline33"
         app:layout_constraintTop_toTopOf="parent" />
@@ -34,6 +36,7 @@
         android:paddingRight="@dimen/largePadding"
         android:text="End"
         android:textStyle="bold"
+        android:textSize="@dimen/normalText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/guideline50"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,6 +48,7 @@
         android:paddingRight="@dimen/largePadding"
         android:text="Duration"
         android:textStyle="bold"
+        android:textSize="@dimen/normalText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/guideline67"
         app:layout_constraintTop_toTopOf="parent" />
