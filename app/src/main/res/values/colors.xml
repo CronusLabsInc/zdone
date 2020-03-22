@@ -6,4 +6,5 @@
   <color name="textPrimary">#555555</color>
 
   <color name="minsWorkedInWeekTooLow">#ef5350</color>
+  <color name="minsWorkedInWeekTarget">#ffeb3b</color>
 </resources>

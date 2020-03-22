@@ -6,6 +6,15 @@
     android:padding="@dimen/normalPadding"
     >
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingLeft="@dimen/smallPadding"
+        android:paddingRight="@dimen/smallPadding"
+        android:text="How many hours have you worked per week recently?"
+        />
+
     <com.github.mikephil.charting.charts.CombinedChart
         android:id="@+id/daily_work_time_bar_chart"
         android:layout_width="match_parent"

@@ -42,7 +42,7 @@ class MainActivity : SingleActivity(), NavigationListener {
     }
 
     override fun createNavigator(): Navigator {
-        return Navigator.withRoot(ScreenInjector.get().homeScreen()).loggingEnabled(true).build()
+        return Navigator.withRoot(ScreenInjector.get().dailyStatsScreen()).loggingEnabled(true).build()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

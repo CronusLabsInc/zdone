@@ -66,7 +66,7 @@ class DailyStatsChartView(context: Context) : BaseScreenView<DailyStatsChartScre
         lineDataSet.setDrawCircles(false)
         lineDataSet.setDrawValues(false)
         lineDataSet.lineWidth = 3f
-        lineDataSet.color = context.resources.getColor(R.color.colorAccent)
+        lineDataSet.color = context.resources.getColor(R.color.minsWorkedInWeekTarget)
 
 
         val combinedData = CombinedData()

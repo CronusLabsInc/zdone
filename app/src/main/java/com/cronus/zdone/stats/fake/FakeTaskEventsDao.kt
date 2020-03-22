@@ -32,7 +32,7 @@ class FakeTaskEventsDao : TaskEventsDao {
     override fun getTaskEvents(): Flow<List<TaskEvent>> =
         _taskEventsSubject
             .hide()
-            .toFlowable(BackpressureStrategy.BUFFER)
+            .toFlowable(BackpressureStrategy.ERROR)
             .asFlow()
 
     override fun addTaskEvent(taskEvent: TaskEvent) {
@@ -99,13 +99,14 @@ internal class FakeTaskEventsGenerator() {
 
     private val durationSecs = List(taskNames.size) { Random.nextInt(30, 3000) }
 
-    private var previousCompletedAtDateTime = LocalDate.now().toDateTimeAtStartOfDay().plusHours(8)
+    private var previousCompletedAtDateTime = LocalDate.now().toDateTimeAtStartOfDay().plusDays(1).minusHours(4)
 
     private val completedAtMillis = List(taskNames.size) { idx ->
-        previousCompletedAtDateTime = previousCompletedAtDateTime.plusSeconds(durationSecs[idx])
-        previousCompletedAtDateTime = previousCompletedAtDateTime.plusMinutes(Random.nextInt(1, 30))
-        previousCompletedAtDateTime.millis
-    }
+        val result = previousCompletedAtDateTime.millis
+        previousCompletedAtDateTime = previousCompletedAtDateTime.minusSeconds(durationSecs[idx])
+        previousCompletedAtDateTime = previousCompletedAtDateTime.minusHours(Random.nextInt(1, 20))
+        result
+    }.sortedBy { it }
 
     val taskEvents = MutableList(taskNames.size) { idx ->
         TaskEvent(
