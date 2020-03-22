@@ -6,7 +6,9 @@ import androidx.room.migration.Migration
 import com.cronus.zdone.BuildConfig
 import com.cronus.zdone.NoOpToaster
 import com.cronus.zdone.RealToaster
+import com.cronus.zdone.RealUserPreferences
 import com.cronus.zdone.Toaster
+import com.cronus.zdone.UserPreferences
 import com.cronus.zdone.notification.OngoingNotificationShower
 import com.cronus.zdone.notification.TaskNotificationShower
 import com.cronus.zdone.stats.TaskEventsDatabase
@@ -46,13 +48,17 @@ class AndroidModule(val context: Context) {
 
     @Provides
     fun taskEventsDao(taskEventsDatabase: TaskEventsDatabase) =
-        if (BuildConfig.DEBUG) FakeTaskEventsDao() else taskEventsDatabase.taskEventsDao()
+        taskEventsDatabase.taskEventsDao()
+//        if (BuildConfig.DEBUG) FakeTaskEventsDao() else taskEventsDatabase.taskEventsDao()
 
     @Module
     interface Bindings {
 
         @Binds
         fun taskNotificationShower(ongoingNotificationShower: OngoingNotificationShower): TaskNotificationShower
+
+        @Binds
+        fun userPreferences(realUserPreferences: RealUserPreferences): UserPreferences
 
     }
 

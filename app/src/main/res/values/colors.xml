@@ -4,4 +4,7 @@
   <color name="colorPrimaryDark">#444444</color>
   <color name="colorAccent">#26a69a</color>
   <color name="textPrimary">#555555</color>
+
+  <color name="minsWorkedInWeekTooLow">#ef5350</color>
+  <color name="minsWorkedInWeekTarget">#ffeb3b</color>
 </resources>

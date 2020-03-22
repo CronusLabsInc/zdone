@@ -1,4 +1,4 @@
-package com.cronus.zdone.stats
+package com.cronus.zdone.stats.log
 
 import android.content.Context
 import android.util.Log
@@ -9,6 +9,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.*
 import com.cronus.zdone.R
+import com.cronus.zdone.stats.TaskEvent
+import com.cronus.zdone.stats.TaskUpdateType
 import com.cronus.zdone.util.Do
 import com.wealthfront.magellan.BaseScreenView
 import kotlinx.android.synthetic.main.daily_stats.view.*
@@ -16,7 +18,7 @@ import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import java.text.DecimalFormat
 
-class DailyStatsView(context: Context) : BaseScreenView<DailyStatsScreen>(context) {
+class DailyStatsLogView(context: Context) : BaseScreenView<DailyStatsLogScreen>(context) {
 
     private val taskEventsListAdapter: TaskEventsListAdapter
 
@@ -32,15 +34,15 @@ class DailyStatsView(context: Context) : BaseScreenView<DailyStatsScreen>(contex
         }
     }
 
-    fun setState(state: DailyStatsScreen.ViewState) {
+    fun setState(state: DailyStatsLogScreen.ViewState) {
         clearState()
         Do exhaustive when (state) {
-            DailyStatsScreen.ViewState.Loading -> showLoading()
-            is DailyStatsScreen.ViewState.Data -> {
+            DailyStatsLogScreen.ViewState.Loading -> showLoading()
+            is DailyStatsLogScreen.ViewState.Data -> {
                 Log.d("ZDONE_EVENT_ITEMS", state.events.joinToString("\n"))
                 showTaskEvents(state.events)
             }
-            is DailyStatsScreen.ViewState.Error -> showError(state.message)
+            is DailyStatsLogScreen.ViewState.Error -> showError(state.message)
         }
     }
 
@@ -117,10 +119,27 @@ private class TaskEventsListAdapter :
         fun bind(taskEvent: TaskEvent) {
             taskEventItem = taskEvent
             taskName.text = taskEvent.taskName
+            val textColorResId =
+                if (taskEvent.taskResult == TaskUpdateType.COMPLETED) android.R.color.holo_green_dark else R.color.textPrimary
+            taskName.setTextColor(taskName.context.getColor(textColorResId))
             taskStartTime.text = taskEvent.getTaskStartTime()
             taskEndTime.text = taskEvent.getEndTime()
             taskDuration.text =
                 DecimalFormat("#.#").format(taskEvent.durationSecs.toDouble() / 60)
+        }
+
+        private fun TaskEvent.getEndTime(): String =
+            getFormattedTimeString(completedAtMillis)
+
+        private fun TaskEvent.getTaskStartTime(): String {
+            val startedAtMillis = completedAtMillis - (durationSecs * 1000)
+            return getFormattedTimeString(startedAtMillis)
+        }
+
+        private fun getFormattedTimeString(startedAtMillis: Long): String {
+            val localDateTime = LocalDateTime(startedAtMillis)
+            val timeFormatter = DateTimeFormat.forPattern("HH:mm")
+            return timeFormatter.print(localDateTime)
         }
 
     }
@@ -136,17 +155,4 @@ private class TaskEventsListAdapter :
 
     }
 
-}
-
-private fun TaskEvent.getEndTime(): String = getFormattedTimeString(completedAtMillis)
-
-private fun TaskEvent.getTaskStartTime(): String {
-    val startedAtMillis = completedAtMillis - (durationSecs * 1000)
-    return getFormattedTimeString(startedAtMillis)
-}
-
-private fun getFormattedTimeString(startedAtMillis: Long): String {
-    val localDateTime = LocalDateTime(startedAtMillis)
-    val timeFormatter = DateTimeFormat.forPattern("HH:mm")
-    return timeFormatter.print(localDateTime)
 }

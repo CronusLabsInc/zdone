@@ -34,4 +34,10 @@
   <string name="settings_section_tasks_by_time_of_day">Section Tasks By Time of Day</string>
   <string name="settings_section_tasks_by_tod_description">Only show morning tasks during morning routine, only show current day tasks during day, only show evening tasks in evening</string>
   <string name="settings_log_out">Log Out</string>
+
+  <string-array name="time_granularity_options">
+    <item>Weekly</item>
+    <item>Daily</item>
+  </string-array>
+
 </resources>

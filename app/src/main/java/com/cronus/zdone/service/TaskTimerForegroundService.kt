@@ -32,21 +32,53 @@ class TaskTimerForegroundService : Service() {
         return null
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        ZdoneApplication.get().component.inject(this)
+        showInitialNotification()
+    }
+
+    private fun showInitialNotification() {
+        val builder = NotificationCompat.Builder(applicationContext, ZdoneApplication.CHANNEL_ID)
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.ic_zdone_notification_logo)
+            .setContentTitle("Let's get it")
+            .setContentText("task starts now!")
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    applicationContext,
+                    0,
+                    MainActivity.getLaunchIntent(applicationContext),
+                    0
+                )
+            )
+        startForeground(NOTIFICATION_ID, builder.build())
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val result =  super.onStartCommand(intent, flags, startId)
-        ZdoneApplication.get().component.inject(this)
         if (timerJob == null) {
             timerJob = CoroutineScope(Dispatchers.Default).launch {
-                taskExecutionManager.currentTaskExecutionData.collect { taskState ->
+                taskExecutionManager.currentTaskExecutionData?.collect { taskState ->
                     Do exhaustive when(taskState) {
-                        TaskExecutionState.WaitingForTasks -> stopSelf()
-                        is TaskExecutionState.TaskRunning -> updateNotification(taskState.task, taskState.secsRemaining)
+                        TaskExecutionState.WaitingForTasks -> {
+                            stopSelf()
+                        }
+                        is TaskExecutionState.TaskRunning -> updateNotification(
+                            taskState.task,
+                            taskState.secsRemaining
+                        )
                         TaskExecutionState.AllTasksCompleted -> stopSelf()
                     }
                 }
             }
         }
         return result
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        taskExecutionManager.cancelTasks()
     }
 
     private fun updateNotification(task: Task, timeRemainingSecs: Long) {
@@ -78,7 +110,7 @@ class TaskTimerForegroundService : Service() {
                         0
                     )
                 )
-        startForeground(NOTIFICATION_ID, builder.build())
+        NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, builder.build())
     }
 
     private fun getUpdateIntent(updateType: UpdateTaskService.RequestCodes): Intent {
@@ -96,7 +128,6 @@ class TaskTimerForegroundService : Service() {
 
     override fun onDestroy() {
         stopForeground(true)
-        NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID)
         timerJob?.cancel()
         super.onDestroy()
     }

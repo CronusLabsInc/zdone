@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/normalPadding">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/normalPadding"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingLeft="@dimen/smallPadding"
+            android:paddingRight="@dimen/smallPadding"
+            android:paddingBottom="@dimen/smallPadding"
+            android:text="How much time was tracked recently?"
+            />
+
+        <com.cronus.zdone.stats.chart.TimeWorkedBarChart
+            android:id="@+id/time_worked_bar_chart"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:enabled="false"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/smallPadding"
+            android:paddingRight="@dimen/smallPadding"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="@dimen/normalPadding"
+                android:text="Time scale"
+                />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/time_granularity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/smallPadding"
+            android:paddingRight="@dimen/smallPadding"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily Work Goal (mins):"
+                />
+
+            <EditText
+                android:id="@+id/daily_work_goal_mins"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="0-60"
+                android:inputType="number"
+                android:imeOptions="actionDone"
+                />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chart Screen"
+            android:gravity="center"
+            android:layout_gravity="center"
+            />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            />
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,6 +1,5 @@
 package com.cronus.zdone.dagger
 
-import androidx.room.Room
 import com.cronus.zdone.AppDispatchers
 import com.cronus.zdone.AppExecutors
 import com.cronus.zdone.AppExecutorsImpl
@@ -11,9 +10,8 @@ import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.ZdoneService
 import com.cronus.zdone.notification.TaskNotificationManager
 import com.cronus.zdone.notification.TaskNotificationShower
-import com.cronus.zdone.stats.DailyStats
-import com.cronus.zdone.stats.DailyStatsProvider
-import com.cronus.zdone.stats.RealDailyStatsProvider
+import com.cronus.zdone.stats.summary.DailyStatsSummaryProvider
+import com.cronus.zdone.stats.summary.RealDailyStatsSummaryProvider
 import com.cronus.zdone.timer.RealTaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionManager
 import dagger.Binds
@@ -52,7 +50,7 @@ class AppModule {
 
         @Binds
         @Singleton
-        fun dailyStatsProvider(realDailyStatsProvider: RealDailyStatsProvider): DailyStatsProvider
+        fun dailyStatsProvider(realDailyStatsProvider: RealDailyStatsSummaryProvider): DailyStatsSummaryProvider
 
     }
 

@@ -2,13 +2,13 @@ package com.cronus.zdone.home
 
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup
-import androidx.viewpager.widget.PagerAdapter
+import com.cronus.zdone.R
+import com.cronus.zdone.util.TabsAdapter
 import com.google.android.material.tabs.TabLayout.TabLayoutOnPageChangeListener
 import com.google.android.material.tabs.TabLayout.ViewPagerOnTabSelectedListener
 import com.wealthfront.magellan.BaseScreenView
 import com.wealthfront.magellan.Screen
-import kotlinx.android.synthetic.main.home.view.*
+import kotlinx.android.synthetic.main.tab_screen.view.*
 
 
 class HomeView(context: Context, screens: List<Screen<*>>) : BaseScreenView<HomeScreen>(context) {
@@ -17,7 +17,7 @@ class HomeView(context: Context, screens: List<Screen<*>>) : BaseScreenView<Home
     }
 
     init {
-        inflate(context, com.cronus.zdone.R.layout.home, this)
+        inflate(context, R.layout.tab_screen, this)
         initPager(context, screens)
     }
 
@@ -32,23 +32,4 @@ class HomeView(context: Context, screens: List<Screen<*>>) : BaseScreenView<Home
         tabLayout.addOnTabSelectedListener(ViewPagerOnTabSelectedListener(pager))
     }
 
-    class TabsAdapter(val context: Context, val tabScreens: List<Screen<*>>) : PagerAdapter() {
-
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            return tabScreens.get(position).getView()
-        }
-
-        override fun isViewFromObject(view: View, `object`: Any): Boolean {
-            return view == `object`
-        }
-
-        override fun getCount(): Int {
-            return tabScreens.size
-        }
-
-        override fun getPageTitle(position: Int): CharSequence? {
-            return tabScreens[position].getTitle(context)
-        }
-
-    }
 }

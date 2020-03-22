@@ -100,6 +100,9 @@ dependencies {
     def store_version = "4.0.0-alpha03"
     implementation "com.dropbox.mobile.store:store4:${store_version}"
 
+    def mpandroidchart_version = "v3.1.0"
+    implementation "com.github.PhilJay:MPAndroidChart:$mpandroidchart_version"
+
     testImplementation 'junit:junit:4.13'
     testImplementation 'io.mockk:mockk:1.9.3'
     testImplementation 'com.google.truth:truth:1.0.1'

@@ -9,6 +9,7 @@ import android.view.View
 import com.cronus.zdone.api.ApiTokenManager
 import com.cronus.zdone.dagger.Injector
 import com.cronus.zdone.dagger.ScreenInjector
+import com.cronus.zdone.service.TaskTimerForegroundService
 import com.wealthfront.blend.Blend
 import com.wealthfront.magellan.ActionBarConfig
 import com.wealthfront.magellan.NavigationListener
