@@ -90,6 +90,13 @@
         android:paddingTop="@dimen/normalPadding">
 
         <Button
+            android:id="@+id/stopCurrentTasksButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/normalPadding"
+            android:text="@string/settings_stop_working" />
+
+        <Button
             android:id="@+id/logoutButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

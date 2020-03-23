@@ -40,6 +40,9 @@ class SettingsView(context: Context) : BaseScreenView<SettingsScreen>(context) {
         sectionTasksByTimeOfDaySwitch.setOnCheckedChangeListener { _, isChecked ->
             screen.setSectionTasksByTimeOfDayEnabled(isChecked)
         }
+        stopCurrentTasksButton.setOnClickListener {
+            screen.stopCurrentWorkSession()
+        }
         logoutButton.setOnClickListener {
             screen.logout()
         }
