@@ -8,6 +8,8 @@ import com.cronus.zdone.api.AuthInterceptor
 import com.cronus.zdone.api.RealTasksRepository
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.ZdoneService
+import com.cronus.zdone.home.RealUserSelectedTasksRepository
+import com.cronus.zdone.home.UserSelectedTasksRepository
 import com.cronus.zdone.notification.TaskNotificationManager
 import com.cronus.zdone.notification.TaskNotificationShower
 import com.cronus.zdone.stats.summary.DailyStatsSummaryProvider
@@ -51,6 +53,10 @@ class AppModule {
         @Binds
         @Singleton
         fun dailyStatsProvider(realDailyStatsProvider: RealDailyStatsSummaryProvider): DailyStatsSummaryProvider
+
+        @Binds
+        @Singleton
+        fun userSelectedTasksRepository(realUserSelectedTasksRepository: RealUserSelectedTasksRepository): UserSelectedTasksRepository
 
     }
 

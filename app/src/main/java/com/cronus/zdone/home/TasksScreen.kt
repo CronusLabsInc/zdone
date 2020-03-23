@@ -17,6 +17,7 @@ import javax.inject.Inject
 
 class TasksScreen @Inject constructor(
     val tasksRepo: TasksRepository,
+    val userSelectedTasksRepository: UserSelectedTasksRepository,
     val taskExecutionManager: TaskExecutionManager,
     val toaster: Toaster
 ) : RxScreen<TasksView>() {
@@ -24,6 +25,7 @@ class TasksScreen @Inject constructor(
     internal var inProgressTask: DisplayedTask? = null
     internal var currentTimeProcess: TimeProgress? = null
     private val mainScope = CoroutineScope(Dispatchers.Main)
+    private var selectedTaskIds = setOf<String>()
 
     override fun createView(context: Context): TasksView {
         return TasksView(context, isLargeFingersModeEnabled(context))
@@ -37,6 +39,7 @@ class TasksScreen @Inject constructor(
     override fun getTitle(context: Context) = context.getString(R.string.tasks)
 
     override fun onSubscribe(context: Context?) {
+        getSelectedTasks()
         requestTaskData()
         CoroutineScope(Dispatchers.Main).launch {
             taskExecutionManager.currentTaskExecutionData
@@ -48,6 +51,19 @@ class TasksScreen @Inject constructor(
                     // clear out the in progress task status. That happens here.
                     inProgressTask = null
                     view?.setTasksProgressState(TaskProgressState.READY)
+                }
+        }
+    }
+
+    private fun getSelectedTasks() {
+        CoroutineScope(Dispatchers.Main).launch {
+            userSelectedTasksRepository.selectedTasks
+                .map {
+                    selectedTaskIds = it.toSet()
+                    it
+                }
+                .collect {
+                    view?.setSelectedTasks(it)
                 }
         }
     }
@@ -104,7 +120,8 @@ class TasksScreen @Inject constructor(
                 lengthMins = task.lengthMins,
                 isSubtask = false,
                 showDivider = task.subtasks.isNullOrEmpty(),
-                progressState = taskProgressState
+                progressState = taskProgressState,
+                isSelected = selectedTaskIds.contains(task.id)
             )
             val result = mutableListOf(topLevelTask)
             task.subtasks?.mapIndexed { index, subTask ->
@@ -118,7 +135,8 @@ class TasksScreen @Inject constructor(
                             lengthMins = 0,
                             isSubtask = true,
                             showDivider = index == task.subtasks.size - 1,
-                            progressState = taskProgressState // use parent progress state for subtasks
+                            progressState = taskProgressState, // use parent progress state for subtasks
+                            isSelected = selectedTaskIds.contains(task.id)
                         )
                     )
                 }
@@ -255,6 +273,10 @@ class TasksScreen @Inject constructor(
         }
     }
 
+    fun itemSelected(item: DisplayedTask) {
+        userSelectedTasksRepository.userSelectedTask(item.id)
+    }
+
     data class DisplayedTask(
         val id: String,
         val subtaskId: String? = null,
@@ -263,7 +285,8 @@ class TasksScreen @Inject constructor(
         val lengthMins: Int,
         val isSubtask: Boolean,
         val showDivider: Boolean,
-        var progressState: TaskProgressState
+        var progressState: TaskProgressState,
+        var isSelected: Boolean
     )
 
     enum class TaskProgressState {

@@ -41,8 +41,7 @@ class RealTaskExecutionManager @Inject constructor() : TaskExecutionManager {
             .toFlowable(BackpressureStrategy.BUFFER)
             .map {
                 Log.d("ZDONE_TASK_EXECUTION", it.toString())
-                it
-            }
+                it }
             .asFlow()
 
     override fun cancelTasks() {
