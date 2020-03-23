@@ -36,6 +36,7 @@
   <string name="settings_log_out">Log Out</string>
   <string name="upcoming_tasks_empty_title">Select some tasks or roll with the standard set</string>
   <string name="upcoming_tasks">Upcoming Tasks</string>
+  <string name="settings_stop_working">Stop working</string>
 
   <string-array name="time_granularity_options">
     <item>Weekly</item>

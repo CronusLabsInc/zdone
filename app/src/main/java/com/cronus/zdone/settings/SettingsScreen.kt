@@ -11,6 +11,7 @@ import com.cronus.zdone.dagger.ScreenInjector
 import com.cronus.zdone.home.NoFilterTaskShowingStrategy
 import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TimeOfDayTaskShowingStrategy
+import com.cronus.zdone.timer.TaskExecutionManager
 import com.dropbox.android.external.store4.StoreResponse
 import com.wealthfront.magellan.NavigationType
 import com.wealthfront.magellan.rx2.RxScreen
@@ -24,6 +25,7 @@ class SettingsScreen @Inject constructor(
     val apiTokenManager: ApiTokenManager,
     val workTimeManager: WorkTimeManager,
     val tasksRepository: TasksRepository,
+    val taskExecutionManager: TaskExecutionManager,
     val sharedPreferences: SharedPreferences,
     val taskShowerStrategyProvider: TaskShowerStrategyProvider
 ) : RxScreen<SettingsView>() {
@@ -105,5 +107,9 @@ class SettingsScreen @Inject constructor(
             .putBoolean("section_tasks_mode_key", enabled)
             .apply()
         taskShowerStrategyProvider.setStrategy(if (enabled) TimeOfDayTaskShowingStrategy() else NoFilterTaskShowingStrategy())
+    }
+
+    fun stopCurrentWorkSession() {
+        taskExecutionManager.cancelTasks()
     }
 }
