@@ -2,7 +2,9 @@ package com.cronus.zdone.timer
 
 import android.content.Context
 import android.view.View
+import android.widget.ArrayAdapter
 import com.cronus.zdone.R
+import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.stats.summary.DailyStatsSummary
 import com.cronus.zdone.timer.TimerScreen.TimerState
 import com.cronus.zdone.timer.TimerScreen.ViewState
@@ -73,6 +75,12 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         taskName.text = viewState.taskName
         startTasks.visibility = VISIBLE
         showDailyStats()
+        showUpcomingTasks()
+    }
+
+    private fun showUpcomingTasks() {
+        upcomingTasksTitle.visibility = View.VISIBLE
+        upcomingTasksList.visibility = View.VISIBLE
     }
 
     private fun showDailyStats() {
@@ -93,6 +101,12 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         deferTaskButton.visibility = GONE
         loading.visibility = GONE
         clearDailyStatsState()
+        clearUpcomingStatsState()
+    }
+
+    private fun clearUpcomingStatsState() {
+        upcomingTasksTitle.visibility = View.GONE
+        upcomingTasksList.visibility = View.GONE
     }
 
     private val dailyStatsViews = arrayOf(
@@ -112,6 +126,14 @@ class TimerView(context: Context) : BaseScreenView<TimerScreen>(context) {
         dailyStatsExpectedMinsWorked.text = "Expected: ${statsSummary.expectedSecondsWorked / 60}"
         dailyStatsTasksCompleted.text = "Completed: ${statsSummary.numTasksCompleted}"
         dailyStatsTasksDeferred.text = "Deferred: ${statsSummary.numTasksDeferred}"
+    }
+
+    fun setSelectedTasks(it: List<Task>) {
+        upcomingTasksTitle.text = context.getString(if (it.isEmpty())
+            R.string.upcoming_tasks_empty_title
+        else
+            R.string.upcoming_tasks)
+        upcomingTasksList.adapter = ArrayAdapter<String>(context, R.layout.upcoming_tasks_list_item, it.map { it.name })
     }
 
 }

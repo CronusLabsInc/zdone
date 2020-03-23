@@ -6,8 +6,10 @@ import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.UpdateDataResponse
+import com.cronus.zdone.home.UserSelectedTasksRepository
 import com.cronus.zdone.stats.summary.DailyStatsSummaryProvider
 import com.cronus.zdone.stats.TaskUpdateType
+import com.cronus.zdone.stats.log.DailyStatsLogScreen
 import com.dropbox.android.external.store4.StoreResponse
 import kotlinx.coroutines.flow.*
 import java.lang.Math.abs
@@ -15,6 +17,7 @@ import javax.inject.Inject
 
 class TimerScreen @Inject constructor(
     val tasksRepository: TasksRepository,
+    val userSelectedTasksRepository: UserSelectedTasksRepository,
     val taskExecutionManager: TaskExecutionManager,
     val dailyStatsSummaryProvider: DailyStatsSummaryProvider,
     val toaster: Toaster
@@ -62,6 +65,12 @@ class TimerScreen @Inject constructor(
                     toaster.showToast("Worked for ${it.actualSecondsWorked / 60} minutes today")
                 }
         }
+        safeLaunch {
+            userSelectedTasksRepository.selectedTasks
+                .collect {
+                    view?.setSelectedTasks(it)
+                }
+        }
     }
 
     override fun getTitle(context: Context): String {
@@ -71,11 +80,15 @@ class TimerScreen @Inject constructor(
     fun startTasks() {
         toaster.showToast("Starting standard tasks")
         safeLaunch {
-            val tasks = tasksRepository.getTasksFromStore()
-                .map { it.dataOrNull() }
-                .filterNotNull()
+            var tasksToRun = userSelectedTasksRepository.selectedTasks
                 .first()
-            taskExecutionManager.startTasks(tasks)
+            if (tasksToRun.isEmpty()) {
+                tasksToRun = tasksRepository.getTasksFromStore()
+                    .map { it.dataOrNull() }
+                    .filterNotNull()
+                    .first()
+            }
+            taskExecutionManager.startTasks(tasksToRun)
         }
     }
 

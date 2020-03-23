@@ -12,6 +12,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.GestureDetectorCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -24,7 +25,7 @@ import com.wealthfront.magellan.BaseScreenView
 import kotlinx.android.synthetic.main.error.view.*
 import kotlinx.android.synthetic.main.tasks.view.*
 
-class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
+class TasksView(context: Context, largeFingersModeEnabled: Boolean) :
     BaseScreenView<TasksScreen>(context) {
 
     private val tasksListAdapter: TasksListAdapter
@@ -32,7 +33,7 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
     init {
         View.inflate(context, R.layout.tasks, this)
         tasksListView.layoutManager = LinearLayoutManager(context)
-        tasksListAdapter = TasksListAdapter(largeFingersModeEnabled)
+        tasksListAdapter = TasksListAdapter(largeFingersModeEnabled, context)
         tasksListView.adapter = tasksListAdapter
         tasksListAdapter.onTaskCompletedListener = { task ->
             screen.taskCompleted(task)
@@ -46,6 +47,9 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
         }
         tasksListAdapter.onTaskPausedListener = { task ->
             screen.pauseTask(task)
+        }
+        tasksListAdapter.onLongPressListener = { item ->
+            screen.itemSelected(item)
         }
         tasksSwipeRefresh.setOnRefreshListener {
             screen.refreshTaskData()
@@ -115,7 +119,11 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
         tasksListAdapter.setTasksProgressState(taskProgressState)
     }
 
-    private class TasksListAdapter(val largeFingersModeEnabled: Boolean) :
+    fun setSelectedTasks(selectedTaskIds: Set<String>) {
+        tasksListAdapter.setSelectedTasks(selectedTaskIds)
+    }
+
+    private class TasksListAdapter(val largeFingersModeEnabled: Boolean, context: Context) :
         ListAdapter<DisplayedTask, TasksListAdapter.TaskViewHolder>(
             TaskDiffer()
         ) {
@@ -130,6 +138,10 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
         var onTaskDeferredListener: ((DisplayedTask) -> Unit)? = null
         var onTaskStartedListener: ((DisplayedTask) -> Unit)? = null
         var onTaskPausedListener: ((DisplayedTask) -> Unit)? = null
+        var onLongPressListener: ((DisplayedTask) -> Unit)? = null
+
+        val selectedItemBackground = context.resources.getColor(R.color.highlighted_item_background)
+        val normalItemBackground = context.resources.getColor(android.R.color.transparent)
 
         override fun getItemViewType(position: Int) =
             when {
@@ -149,7 +161,7 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
 
         override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
             val task = getItem(position)
-            val context = holder.taskNameView.context
+            val context = holder.itemView.context
             holder.taskNameView.text =
                 context.getString(R.string.task_item_name, task.name, task.lengthMins)
             holder.taskCompletedCheckbox.isChecked = false
@@ -179,6 +191,14 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
             holder.startTask.alpha = if (task.progressState == WAITING) .5f else 1f
             holder.startTask.isEnabled = if (task.progressState == WAITING) false else true
             holder.divider.visibility = if (task.showDivider) View.VISIBLE else View.GONE
+            holder.itemView.setBackgroundColor(if (task.isSelected) selectedItemBackground else normalItemBackground)
+            val gestureDetector = GestureDetectorCompat(context, LongPressGestureListener {
+                onLongPressListener?.invoke(task)
+            })
+            gestureDetector.setIsLongpressEnabled(true)
+            holder.itemView.setOnTouchListener { v, event ->
+                gestureDetector.onTouchEvent(event)
+            }
         }
 
         private fun optimisticallyRemoveTask(task: DisplayedTask) {
@@ -203,7 +223,8 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
                                 upTask.lengthMins,
                                 upTask.isSubtask,
                                 showDivider = true,
-                                progressState = upTask.progressState
+                                progressState = upTask.progressState,
+                                isSelected = upTask.isSelected
                             )
                         )
                         notifyItemChanged(location - 1)
@@ -233,6 +254,14 @@ class TasksView(context: Context?, largeFingersModeEnabled: Boolean) :
                 setTasksProgressState(WAITING) // make all other tasks wait
                 it.progressState = IN_PROGRESS
                 notifyItemChanged(tasksList.indexOf(it))
+            }
+        }
+
+        fun setSelectedTasks(selectedIds: Set<String>) {
+            tasksList.forEachIndexed { index, listItem ->
+                val selected = selectedIds.contains(listItem.id)
+                listItem.isSelected = selected
+                notifyItemChanged(index)
             }
         }
 
