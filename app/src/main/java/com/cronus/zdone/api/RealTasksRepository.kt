@@ -15,6 +15,7 @@ import com.dropbox.android.external.store4.StoreBuilder
 import com.dropbox.android.external.store4.StoreRequest
 import com.dropbox.android.external.store4.StoreResponse
 import com.dropbox.android.external.store4.fresh
+import com.dropbox.android.external.store4.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -133,6 +134,13 @@ class RealTasksRepository @Inject constructor(
 
     override suspend fun flushCacheFromStore() {
         taskInfoStore.clearAll()
+    }
+
+    override suspend fun getTaskById(taskId: String): Task {
+        return taskInfoStore.get(Unit)
+            .tasksToDo
+            .filter { it.id == taskId }
+            .first()
     }
 
     override fun areTasksFromPreviousDay(): Boolean {

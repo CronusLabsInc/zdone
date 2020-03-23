@@ -59,11 +59,11 @@ class TasksScreen @Inject constructor(
         CoroutineScope(Dispatchers.Main).launch {
             userSelectedTasksRepository.selectedTasks
                 .map {
-                    selectedTaskIds = it.toSet()
+                    selectedTaskIds = it.map { it.id }.toSet()
                     it
                 }
                 .collect {
-                    view?.setSelectedTasks(it)
+                    view?.setSelectedTasks(selectedTaskIds)
                 }
         }
     }
@@ -274,7 +274,10 @@ class TasksScreen @Inject constructor(
     }
 
     fun itemSelected(item: DisplayedTask) {
-        userSelectedTasksRepository.userSelectedTask(item.id)
+        mainScope.launch {
+            val task = tasksRepo.getTaskById(item.id)
+            userSelectedTasksRepository.userSelectedTask(task)
+        }
     }
 
     data class DisplayedTask(

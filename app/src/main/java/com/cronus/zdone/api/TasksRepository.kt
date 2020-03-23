@@ -24,6 +24,8 @@ interface TasksRepository {
 
     fun areTasksFromPreviousDay() : Boolean
 
+    suspend fun getTaskById(taskId: String): Task
+
     data class TaskUpdateInfo(
         val id: String,
         val name: String,

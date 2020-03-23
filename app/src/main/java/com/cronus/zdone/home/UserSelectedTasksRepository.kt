@@ -10,27 +10,27 @@ import javax.inject.Singleton
 
 interface UserSelectedTasksRepository {
 
-    val selectedTasks: Flow<List<String>>
+    val selectedTasks: Flow<List<Task>>
 
-    fun userSelectedTask(taskId: String)
+    fun userSelectedTask(task: Task)
 
 }
 
 @Singleton
 class RealUserSelectedTasksRepository @Inject constructor() : UserSelectedTasksRepository {
 
-    private val _userSelectedTasks = mutableListOf<String>()
+    private val _userSelectedTasks = mutableListOf<Task>()
     private val _dataPublisher = BehaviorSubject.createDefault(_userSelectedTasks.toList())
     override val selectedTasks =
         _dataPublisher.hide()
             .toFlowable(BackpressureStrategy.BUFFER)
             .asFlow()
 
-    override fun userSelectedTask(taskId: String) {
-        if (_userSelectedTasks.contains(taskId))
-            _userSelectedTasks.remove(taskId)
+    override fun userSelectedTask(task: Task) {
+        if (_userSelectedTasks.contains(task))
+            _userSelectedTasks.remove(task)
         else
-            _userSelectedTasks.add(taskId)
+            _userSelectedTasks.add(task)
         _dataPublisher.onNext(_userSelectedTasks.toList())
     }
 

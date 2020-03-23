@@ -119,8 +119,8 @@ class TasksView(context: Context, largeFingersModeEnabled: Boolean) :
         tasksListAdapter.setTasksProgressState(taskProgressState)
     }
 
-    fun setSelectedTasks(selectedTaskIds: List<String>) {
-        tasksListAdapter.setSelectedTasks(selectedTaskIds.toSet())
+    fun setSelectedTasks(selectedTaskIds: Set<String>) {
+        tasksListAdapter.setSelectedTasks(selectedTaskIds)
     }
 
     private class TasksListAdapter(val largeFingersModeEnabled: Boolean, context: Context) :
