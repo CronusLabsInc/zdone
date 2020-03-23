@@ -8,7 +8,7 @@ import org.joda.time.LocalDate
 data class AddTaskInfo(
     @JsonProperty
     val name: String,
-    @JsonProperty("due_date")
-    val dueDate: LocalDate,
-    @JsonProperty("length_minutes")
+    @get:JsonProperty("due_date")
+    val dueDate: String,
+    @get:JsonProperty("length_minutes")
     val lengthMins: Long)

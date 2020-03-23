@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/normalPadding">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/smallPadding"
+        android:text="Add A Task"
+        android:textSize="@dimen/smallText"
+        android:textStyle="bold"
+        android:gravity="center"
+        />
+
+    <EditText
+        android:id="@+id/task_name"
+        style="@style/Widget.AppCompat.TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/smallPadding"
+        android:hint="@string/task_name"
+        android:importantForAutofill="no"
+        android:inputType="textAutoComplete" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:paddingRight="@dimen/normalPadding"
+        android:text="@string/duration_mins" />
+
+    <RadioGroup
+        android:id="@+id/duration_options"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:checkedButton="@id/fifteen_mins"
+        android:orientation="horizontal"
+        android:padding="15dp">
+
+        <RadioButton
+            android:id="@+id/five_mins"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/normalPadding"
+            android:text="5" />
+
+        <RadioButton
+            android:id="@+id/fifteen_mins"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/normalPadding"
+            android:text="15" />
+
+        <RadioButton
+            android:id="@+id/thirty_mins"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/normalPadding"
+            android:text="30" />
+
+        <RadioButton
+            android:id="@+id/sixty_mins"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/normalPadding"
+            android:text="60" />
+
+    </RadioGroup>
+
+</LinearLayout>

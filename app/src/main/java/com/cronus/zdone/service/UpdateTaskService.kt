@@ -55,9 +55,9 @@ class UpdateTaskService : Service() {
 
     private fun updateCurrentTask(updateType: TaskUpdateType) {
         if (job == null) {
-            job = CoroutineScope(Dispatchers.Main).launch {
-                launch { updateTaskOnServer(updateType) }
+            job = CoroutineScope(Dispatchers.IO).launch {
                 launch { taskExecutionManager.startNextTask() }
+                launch { updateTaskOnServer(updateType) }
             }
         }
     }
