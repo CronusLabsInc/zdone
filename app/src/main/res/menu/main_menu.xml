@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-  <item
-    android:id="@+id/dailyStatsMenuItem"
-      android:title="@string/daily_stats"
-      app:showAsAction="ifRoom"
-      android:icon="@drawable/daily_stats_menu_logo"
-      app:iconTint="@android:color/white"
-    />
+    <item
+        android:id="@+id/addTaskMenuItem"
+        android:icon="@drawable/ic_add_task"
+        android:title="Add Task"
+        app:iconTint="@android:color/white"
+        app:showAsAction="always" />
 
-  <item
-      android:id="@+id/settings"
-      android:title="@string/settings"
-      app:showAsAction="ifRoom"
-      android:icon="@drawable/settings"
-      app:iconTint="@android:color/white"
-      />
+    <item
+        android:id="@+id/dailyStatsMenuItem"
+        android:icon="@drawable/daily_stats_menu_logo"
+        android:title="@string/daily_stats"
+        app:iconTint="@android:color/white"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/settings"
+        android:title="@string/settings"
+        app:iconTint="@android:color/white"
+        app:showAsAction="ifRoom" />
 </menu>

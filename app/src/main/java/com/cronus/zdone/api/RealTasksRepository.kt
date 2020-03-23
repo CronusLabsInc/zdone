@@ -1,15 +1,26 @@
 package com.cronus.zdone.api
 
-import com.cronus.zdone.AppExecutors
-import com.cronus.zdone.api.TasksRepository.*
-import com.cronus.zdone.api.model.*
+import com.cronus.zdone.api.TasksRepository.TaskUpdateInfo
+import com.cronus.zdone.api.model.AddTaskInfo
+import com.cronus.zdone.api.model.Task
+import com.cronus.zdone.api.model.TaskStatusUpdate
+import com.cronus.zdone.api.model.Tasks
+import com.cronus.zdone.api.model.TimeProgress
+import com.cronus.zdone.api.model.UpdateDataResponse
 import com.cronus.zdone.stats.TaskEvent
 import com.cronus.zdone.stats.TaskEventsDao
 import com.cronus.zdone.stats.TaskUpdateType
-import com.dropbox.android.external.store4.*
-import io.reactivex.Observable
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.dropbox.android.external.store4.Store
+import com.dropbox.android.external.store4.StoreBuilder
+import com.dropbox.android.external.store4.StoreRequest
+import com.dropbox.android.external.store4.StoreResponse
+import com.dropbox.android.external.store4.fresh
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import javax.inject.Inject
@@ -17,33 +28,32 @@ import javax.inject.Singleton
 
 @Singleton
 class RealTasksRepository @Inject constructor(
-    private val appExecutors: AppExecutors,
     private val zdoneService: ZdoneService,
     private val taskEventsDao: TaskEventsDao
 ) : TasksRepository {
 
     private val taskInfoStore: Store<Unit, Tasks>
     private val taskUpdateStore: Store<TaskUpdateInfo, UpdateDataResponse>
+    private val taskAddStore: Store<AddTaskInfo, UpdateDataResponse>
     private var lastRequestTime: Long = 0
 
     init {
         taskInfoStore = StoreBuilder
             .fromNonFlow<Unit, Tasks> { zdoneService.getTaskInfoFlow() }
             .build()
-        taskUpdateStore = StoreBuilder.fromNonFlow<TaskUpdateInfo, UpdateDataResponse>
-        { taskUpdateInfo ->
+        taskUpdateStore = StoreBuilder.fromNonFlow<TaskUpdateInfo, UpdateDataResponse> { taskUpdateInfo ->
             zdoneService.updateTaskAsync(
                 TaskStatusUpdate(
                     id = taskUpdateInfo.id,
                     subtaskId = taskUpdateInfo.subtaskId,
                     update = taskUpdateInfo.updateType.toApiUpdateType(),
                     service = taskUpdateInfo.service,
-                    duration_seconds = taskUpdateInfo.actualDurationSeconds
-                )
-            )
-        }
+                    duration_seconds = taskUpdateInfo.actualDurationSeconds)) }
             .build()
-
+        taskAddStore = StoreBuilder.fromNonFlow<AddTaskInfo, UpdateDataResponse> { addTaskInfo ->
+            zdoneService.addTaskAsync(addTaskInfo) }
+            .disableCache()
+            .build()
     }
 
     override suspend fun getTasksFromStore(): Flow<StoreResponse<List<Task>>> =
@@ -86,6 +96,11 @@ class RealTasksRepository @Inject constructor(
             sendTaskUpdateToApi(taskUpdateInfo)
         }
 
+    override suspend fun addTask(addTaskInfo: AddTaskInfo) =
+        withContext(Dispatchers.IO) {
+            taskAddStore.stream(StoreRequest.fresh(addTaskInfo))
+        }
+
     private fun sendTaskUpdateToApi(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>> {
         return taskUpdateStore.stream(StoreRequest.fresh(taskUpdateInfo))
             .map {
@@ -125,12 +140,6 @@ class RealTasksRepository @Inject constructor(
             lastRequestTime,
             DateTimeZone.getDefault()
         ).dayOfYear().get() < DateTime.now().dayOfYear().get()
-    }
-
-    private fun <T> observe(observable: Observable<T>): Observable<T> {
-        return observable
-            .subscribeOn(appExecutors.network())
-            .observeOn(appExecutors.mainThread())
     }
 
 }

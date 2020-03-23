@@ -6,12 +6,16 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.annotation.IdRes
+import androidx.annotation.MenuRes
+import androidx.appcompat.app.AlertDialog
 import com.cronus.zdone.api.ApiTokenManager
 import com.cronus.zdone.dagger.Injector
 import com.cronus.zdone.dagger.ScreenInjector
 import com.cronus.zdone.service.TaskTimerForegroundService
 import com.wealthfront.blend.Blend
 import com.wealthfront.magellan.ActionBarConfig
+import com.wealthfront.magellan.DialogCreator
 import com.wealthfront.magellan.NavigationListener
 import com.wealthfront.magellan.Navigator
 import com.wealthfront.magellan.support.SingleActivity
@@ -55,6 +59,7 @@ class MainActivity : SingleActivity(), NavigationListener {
         when (item.itemId) {
             R.id.settings -> getNavigator().goTo(ScreenInjector.get().settingsScreen())
             R.id.dailyStatsMenuItem -> getNavigator().goTo(ScreenInjector.get().dailyStatsScreen())
+            R.id.addTaskMenuItem -> getNavigator().sendOptionsItemSelected(R.id.addTaskMenuItem)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -75,4 +80,13 @@ class MainActivity : SingleActivity(), NavigationListener {
             toolbar.visibility = if (actionBarConfig.visible()) View.VISIBLE else View.GONE
         }
     }
+}
+
+private fun Navigator.sendOptionsItemSelected(@IdRes itemId: Int) {
+    (currentScreen() as OptionItemSelectedListener).optionItemSelected(itemId)
+}
+
+interface OptionItemSelectedListener {
+
+    fun optionItemSelected(@IdRes id: Int)
 }

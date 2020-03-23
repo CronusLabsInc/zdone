@@ -1,5 +1,7 @@
 package com.cronus.zdone.api
 
+import com.cronus.zdone.api.model.AddTaskInfo
+import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TaskStatusUpdate
 import com.cronus.zdone.api.model.Tasks
 import com.cronus.zdone.api.model.UpdateDataResponse
@@ -28,5 +30,8 @@ interface ZdoneService {
 
     @POST("/api/update_time")
     suspend fun updateWorkTimeAsync(@Body body: Map<String, Int>): UpdateDataResponse
+
+    @POST("/api/add_task")
+    suspend fun addTaskAsync(@Body newTaskInfo: AddTaskInfo): UpdateDataResponse
 
 }

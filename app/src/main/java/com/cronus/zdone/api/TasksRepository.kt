@@ -1,5 +1,6 @@
 package com.cronus.zdone.api
 
+import com.cronus.zdone.api.model.AddTaskInfo
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.api.model.UpdateDataResponse
@@ -14,6 +15,8 @@ interface TasksRepository {
     suspend fun getTimeDataFromStore(): Flow<StoreResponse<TimeProgress>>
 
     suspend fun updateTask(taskUpdateInfo: TaskUpdateInfo): Flow<StoreResponse<UpdateDataResponse>>
+
+    suspend fun addTask(addTaskInfo: AddTaskInfo): Flow<StoreResponse<UpdateDataResponse>>
 
     suspend fun refreshTaskDataFromStore()
 
