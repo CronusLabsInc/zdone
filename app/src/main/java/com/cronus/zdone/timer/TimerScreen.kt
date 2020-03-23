@@ -80,11 +80,15 @@ class TimerScreen @Inject constructor(
     fun startTasks() {
         toaster.showToast("Starting standard tasks")
         safeLaunch {
-            val tasks = tasksRepository.getTasksFromStore()
-                .map { it.dataOrNull() }
-                .filterNotNull()
+            var tasksToRun = userSelectedTasksRepository.selectedTasks
                 .first()
-            taskExecutionManager.startTasks(tasks)
+            if (tasksToRun.isEmpty()) {
+                tasksToRun = tasksRepository.getTasksFromStore()
+                    .map { it.dataOrNull() }
+                    .filterNotNull()
+                    .first()
+            }
+            taskExecutionManager.startTasks(tasksToRun)
         }
     }
 
