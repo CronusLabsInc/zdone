@@ -12,7 +12,7 @@ import org.junit.Test
 class TimerScreenTest {
 
     var taskExecutionManager = mockk<TaskExecutionManager>()
-    val timerScreen = TimerScreen(TestTasksRepo(), FakeToaster(), taskExecutionManager)
+    val timerScreen = TimerScreen(TestTasksRepo(), mockk(), taskExecutionManager, mockk(), FakeToaster())
 
     @Test
     fun `GIVEN some tasks to DO IT button THEN do nothing`() {
