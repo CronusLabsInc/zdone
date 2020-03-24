@@ -97,6 +97,17 @@ class TimerScreen @Inject constructor(
         safeLaunch {
             taskExecutionManager.startNextTask()
         }
+        safeLaunch {
+            updateSelectedTasksList()
+        }
+    }
+
+    private suspend fun updateSelectedTasksList() {
+        val selectedTasks = userSelectedTasksRepository.selectedTasks
+            .first()
+        if (!selectedTasks.isEmpty()) {
+            userSelectedTasksRepository.removeTask(selectedTasks[0])
+        }
     }
 
     fun deferTask() {
