@@ -74,5 +74,6 @@ class TimeWorkedBarChart @JvmOverloads constructor(context: Context, attributeSe
         combinedData.setData(BarData(barDataSet))
         combinedData.setData(LineData(lineDataSet))
         daily_work_time_bar_chart.data = combinedData
+        daily_work_time_bar_chart.notifyDataSetChanged()
     }
 }
