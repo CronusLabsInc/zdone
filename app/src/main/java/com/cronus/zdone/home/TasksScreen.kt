@@ -19,7 +19,8 @@ class TasksScreen @Inject constructor(
     val tasksRepo: TasksRepository,
     val userSelectedTasksRepository: UserSelectedTasksRepository,
     val taskExecutionManager: TaskExecutionManager,
-    val toaster: Toaster
+    val toaster: Toaster,
+    val taskShowingStrategyProvider: TaskShowerStrategyProvider
 ) : RxScreen<TasksView>() {
 
     internal var inProgressTask: DisplayedTask? = null
@@ -76,7 +77,8 @@ class TasksScreen @Inject constructor(
                         is StoreResponse.Loading -> { toaster.showToast("Loading tasks") }
                         is StoreResponse.Error -> view?.showError(response.error.message)
                         is StoreResponse.Data -> {
-                            val displayedTasks = getDisplayedTasks(response.value)
+                            val tasksWithStrategy = taskShowingStrategyProvider.getStrategy().selectTasksToShow(response.value)
+                            val displayedTasks = getDisplayedTasks(tasksWithStrategy)
                             view?.setTasks(displayedTasks)
                         }
                     }
@@ -245,6 +247,7 @@ class TasksScreen @Inject constructor(
 
     fun refreshTaskData() {
         mainScope.launch {
+            delay(1000) // give source time to reach consistency
             tasksRepo.refreshTaskDataFromStore()
         }
     }

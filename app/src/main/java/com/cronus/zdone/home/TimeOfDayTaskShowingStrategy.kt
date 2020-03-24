@@ -10,8 +10,10 @@ class TimeOfDayTaskShowingStrategy : TaskShowingStrategy {
     private enum class SectionOfDay {
         MORNING {
             override fun filterTasks(tasks: List<Task>): List<Task> {
-                val morningTasks = tasks.filter { it.name.startsWith("M+") }
-                return morningTasks
+                val morningTasks = tasks.filter { it.name.startsWith("M+") }.toMutableList()
+                val nonMorningTasks = tasks.filter { !it.name.startsWith("M+") }
+                morningTasks.addAll(nonMorningTasks)
+                return morningTasks.toList()
             }
         },
         DAY {
@@ -28,12 +30,10 @@ class TimeOfDayTaskShowingStrategy : TaskShowingStrategy {
         },
         EVENING {
             override fun filterTasks(tasks: List<Task>): List<Task> {
-                val eveningTasks = tasks.filter { it.name.startsWith("N+") }
-                if (eveningTasks.isEmpty()) {
-                    return tasks
-                } else {
-                    return eveningTasks
-                }
+                val eveningTasks = tasks.filter { it.name.startsWith("N+") }.toMutableList()
+                val nonEveningTasks = tasks.filter { !it.name.startsWith("N+") }
+                eveningTasks.addAll(nonEveningTasks)
+                return eveningTasks.toList()
             }
         };
 
@@ -50,8 +50,9 @@ class TimeOfDayTaskShowingStrategy : TaskShowingStrategy {
 
 
     private fun DateTime.getSectionOfDay() = when {
-        hourOfDay().get() <= 8 -> SectionOfDay.MORNING
-        hourOfDay().get() <= 19 -> SectionOfDay.DAY
+        hourOfDay().get() <= 4 -> SectionOfDay.EVENING
+        hourOfDay().get() <= 10 -> SectionOfDay.MORNING
+        hourOfDay().get() <= 23 -> SectionOfDay.DAY
         else -> SectionOfDay.EVENING
     }
 }

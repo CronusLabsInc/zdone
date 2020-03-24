@@ -14,6 +14,8 @@ interface UserSelectedTasksRepository {
 
     fun userSelectedTask(task: Task)
 
+    fun removeTask(task: Task)
+
 }
 
 @Singleton
@@ -34,4 +36,8 @@ class RealUserSelectedTasksRepository @Inject constructor() : UserSelectedTasksR
         _dataPublisher.onNext(_userSelectedTasks.toList())
     }
 
+    override fun removeTask(task: Task) {
+        _userSelectedTasks.remove(task)
+        _dataPublisher.onNext(_userSelectedTasks.toList())
+    }
 }
