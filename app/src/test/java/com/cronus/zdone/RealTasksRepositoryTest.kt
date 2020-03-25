@@ -1,29 +1,19 @@
 package com.cronus.zdone
 
-import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.RealTasksRepository
-import com.cronus.zdone.api.model.Task
-import com.cronus.zdone.api.model.TaskStatusUpdate
-import com.cronus.zdone.home.TaskShowerStrategyProvider
-import com.cronus.zdone.home.TaskShowingStrategy
-import com.dropbox.android.external.store4.Store
-import com.dropbox.android.external.store4.StoreResponse
+import com.cronus.zdone.api.TasksRepository
+import com.cronus.zdone.stats.TaskEventsDao
 import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
-import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.verify
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.subscribe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
@@ -34,7 +24,7 @@ class RealTasksRepositoryTest {
     @SpyK
     var zdoneService = FakeZdoneService()
     @MockK
-    lateinit var appExecutors: AppExecutors
+    lateinit var taskEventsDao: TaskEventsDao
 
     private val testDispatcher = TestCoroutineDispatcher()
 
@@ -44,10 +34,8 @@ class RealTasksRepositoryTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         MockKAnnotations.init(this)
-        every { appExecutors.network() } returns Schedulers.trampoline()
-        every { appExecutors.mainThread() } returns Schedulers.trampoline()
         tasksRepository =
-            RealTasksRepository(appExecutors, zdoneService)
+            RealTasksRepository(zdoneService, taskEventsDao)
     }
 
     @After

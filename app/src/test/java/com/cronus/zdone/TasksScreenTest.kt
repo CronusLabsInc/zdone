@@ -3,15 +3,19 @@ package com.cronus.zdone
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.UpdateDataResponse
+import com.cronus.zdone.home.TaskShowerStrategyProvider
 import com.cronus.zdone.home.TasksScreen
 import com.cronus.zdone.home.TasksScreen.DisplayedTask
 import com.cronus.zdone.home.TasksScreen.TaskProgressState.*
 import com.cronus.zdone.home.TasksView
+import com.cronus.zdone.home.UserSelectedTasksRepository
+import com.cronus.zdone.stats.TaskUpdateType
 import com.cronus.zdone.timer.TaskExecutionManager
 import com.dropbox.android.external.store4.ResponseOrigin
 import com.dropbox.android.external.store4.StoreResponse
 import com.google.common.truth.Truth.assertThat
 import io.mockk.*
+import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +36,10 @@ class TasksScreenTest {
     lateinit var taskTimerManager: TaskExecutionManager
     @RelaxedMockK
     lateinit var tasksView: TasksView
+    @RelaxedMockK
+    lateinit var userSelectedTasksRepository: UserSelectedTasksRepository
+    @RelaxedMockK
+    lateinit var taskShowerStrategyProvider: TaskShowerStrategyProvider
 
     val testRepo = spyk<TasksRepository>(TestTasksRepo())
 
@@ -41,7 +49,7 @@ class TasksScreenTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         MockKAnnotations.init(this, relaxUnitFun = true)
-        tasksScreen = TasksScreen(testRepo, taskTimerManager, FakeToaster())
+        tasksScreen = TasksScreen(testRepo, userSelectedTasksRepository, taskTimerManager, FakeToaster(), taskShowerStrategyProvider)
         tasksScreen.view = tasksView
     }
 
@@ -62,10 +70,19 @@ class TasksScreenTest {
 
     @Test
     fun taskCompleted_noInProgressTask() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask(
+            "fake-id",
+            null,
+            "Reading",
+            "habitica",
+            30,
+            false,
+            true,
+            READY,
+            isSelected = false)
         tasksScreen.taskCompleted(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("complete"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.COMPLETED))) }
     }
 
     @Test
@@ -78,42 +95,42 @@ class TasksScreenTest {
                 ), ResponseOrigin.Fetcher
             )
         )
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY, isSelected = false)
         tasksScreen.taskCompleted(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("complete"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.COMPLETED))) }
         // check task data is refreshed
         coVerify { testRepo.refreshTaskDataFromStore() }
     }
 
     @Test
     fun taskCompleted_withInProgressTask_completedOtherTask() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING, isSelected = false)
         tasksScreen.inProgressTask =
-            DisplayedTask("other_id", null, "Writing", "habitica", 30, false, true, IN_PROGRESS)
+            DisplayedTask("other_id", null, "Writing", "habitica", 30, false, true, IN_PROGRESS, isSelected = false)
         tasksScreen.taskCompleted(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("complete"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.COMPLETED))) }
         assertThat(tasksScreen.inProgressTask).isNotNull()
     }
 
     @Test
     fun `GIVEN tasks are from previous day WHEN completing task THEN refresh data instead`() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING, isSelected = false)
         every { testRepo.areTasksFromPreviousDay() } returns true
         tasksScreen.taskCompleted(task)
 
         coVerify { testRepo.refreshTaskDataFromStore() }
-        coVerify(inverse = true) { testRepo.updateTask(eq(task.toTaskUpdateInfo("complete"))) }
+        coVerify(inverse = true) { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.COMPLETED))) }
     }
 
     @Test
     fun taskCompleted_completedInProgressTask() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, WAITING, isSelected = false)
         tasksScreen.inProgressTask = task
         tasksScreen.taskCompleted(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("complete"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.COMPLETED))) }
         assertThat(tasksScreen.inProgressTask).isNull()
         verify { taskTimerManager.cancelTasks() }
         verify { tasksView.setTasksProgressState(READY) }
@@ -134,7 +151,7 @@ class TasksScreenTest {
 
     @Test
     fun pauseTask() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY, isSelected = false)
         tasksScreen.inProgressTask = task
         tasksScreen.pauseTask(task)
 
@@ -145,15 +162,15 @@ class TasksScreenTest {
 
     @Test
     fun deferTask_success() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY, isSelected = false)
         tasksScreen.deferTask(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("defer"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.DEFERRED))) }
     }
 
     @Test
     fun deferTask_failure() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY, isSelected = false)
         coEvery { testRepo.updateTask(any()) } returns flowOf(
             StoreResponse.Data(
                 UpdateDataResponse(
@@ -165,13 +182,13 @@ class TasksScreenTest {
 
         tasksScreen.deferTask(task)
 
-        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo("defer"))) }
+        coVerify { testRepo.updateTask(eq(task.toTaskUpdateInfo(TaskUpdateType.DEFERRED))) }
         coVerify { testRepo.refreshTaskDataFromStore() } // should re-request task data on failure
     }
 
     @Test
     fun deferTask_apiError() {
-        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY)
+        val task = DisplayedTask("fake-id", null, "Reading", "habitica", 30, false, true, READY, isSelected = false)
         coEvery { testRepo.updateTask(any()) } returns flowOf(
             StoreResponse.Error(
                 Exception("boom"),
@@ -186,6 +203,13 @@ class TasksScreenTest {
 
 }
 
-private fun DisplayedTask.toTaskUpdateInfo(updateType: String): TasksRepository.TaskUpdateInfo {
-    return TasksRepository.TaskUpdateInfo(id, subtaskId, service, null, updateType)
+private fun DisplayedTask.toTaskUpdateInfo(updateType: TaskUpdateType): TasksRepository.TaskUpdateInfo {
+    return TasksRepository.TaskUpdateInfo(
+        id = id,
+        name = name,
+        subtaskId = subtaskId,
+        service = service,
+        expectedDurationSeconds = lengthMins * 60L,
+        actualDurationSeconds = lengthMins * 60L,
+        updateType = updateType)
 }

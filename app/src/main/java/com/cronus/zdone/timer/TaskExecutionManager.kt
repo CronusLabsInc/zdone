@@ -39,9 +39,6 @@ class RealTaskExecutionManager @Inject constructor() : TaskExecutionManager {
     override val currentTaskExecutionData: Flow<TaskExecutionState> =
         _currentTaskExecutionData
             .toFlowable(BackpressureStrategy.BUFFER)
-            .map {
-                Log.d("ZDONE_TASK_EXECUTION", it.toString())
-                it }
             .asFlow()
 
     override fun cancelTasks() {

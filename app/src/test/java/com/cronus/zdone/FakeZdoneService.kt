@@ -34,4 +34,8 @@ class FakeZdoneService : ZdoneService {
     override suspend fun updateWorkTimeAsync(body: Map<String, Int>): UpdateDataResponse {
         return UpdateDataResponse("success")
     }
+
+    override suspend fun addTaskAsync(newTaskInfo: AddTaskInfo): UpdateDataResponse {
+        return UpdateDataResponse("success")
+    }
 }

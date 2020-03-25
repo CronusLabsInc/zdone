@@ -1,6 +1,7 @@
 package com.cronus.zdone
 
 import com.cronus.zdone.api.TasksRepository
+import com.cronus.zdone.api.model.AddTaskInfo
 import com.cronus.zdone.api.model.Task
 import com.cronus.zdone.api.model.TimeProgress
 import com.cronus.zdone.api.model.UpdateDataResponse
@@ -37,6 +38,19 @@ class TestTasksRepo : TasksRepository {
 
     override fun areTasksFromPreviousDay(): Boolean {
         return false
+    }
+
+    override suspend fun addTask(addTaskInfo: AddTaskInfo): Flow<StoreResponse<UpdateDataResponse>> {
+        return flowOf(storeResponseFrom(sucessfulUpdate))
+    }
+
+    override suspend fun getTaskById(taskId: String): Task {
+        return Task(
+            id = taskId,
+            name = "garbage",
+            subtasks = null,
+            service = "habitica",
+            lengthMins = 5)
     }
 
     private fun <T> storeResponseFrom(t: T): StoreResponse<T> = StoreResponse.Data(t, ResponseOrigin.Fetcher)
