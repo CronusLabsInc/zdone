@@ -1,6 +1,7 @@
 package com.cronus.zdone.timer
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.cronus.zdone.CoroutineScreen
 import com.cronus.zdone.R
 import com.cronus.zdone.Toaster
@@ -27,6 +28,11 @@ class TimerScreen @Inject constructor(
         TimerView(context)
 
     override fun onShow(context: Context?) {
+        subscribeData()
+    }
+
+    @VisibleForTesting
+    fun subscribeData() {
         safeLaunch {
             taskExecutionManager.currentTaskExecutionData
                 .collect {
@@ -62,7 +68,6 @@ class TimerScreen @Inject constructor(
             dailyStatsSummaryProvider.dailyStatsSummary
                 .collect {
                     view?.setDailyStats(it)
-                    toaster.showToast("Worked for ${it.actualSecondsWorked / 60} minutes today")
                 }
         }
         safeLaunch {
@@ -78,7 +83,6 @@ class TimerScreen @Inject constructor(
     }
 
     fun startTasks() {
-        toaster.showToast("Starting standard tasks")
         safeLaunch {
             var tasksToRun = userSelectedTasksRepository.selectedTasks
                 .first()
