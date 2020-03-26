@@ -3,15 +3,10 @@ package com.cronus.zdone.timer
 import com.cronus.zdone.FakeToaster
 import com.cronus.zdone.TestTasksRepo
 import com.cronus.zdone.api.model.Task
-import com.cronus.zdone.api.model.Tasks
 import com.cronus.zdone.home.RealUserSelectedTasksRepository
-import com.cronus.zdone.home.UserSelectedTasksRepository
-import com.cronus.zdone.stats.fake.FakeTaskEventsDao
 import com.cronus.zdone.stats.summary.DailyStatsSummary
 import com.cronus.zdone.stats.summary.DailyStatsSummaryProvider
-import com.cronus.zdone.stats.summary.RealDailyStatsSummaryProvider
 import com.google.common.truth.Truth.assertThat
-import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -24,7 +19,6 @@ import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
-import net.danlew.android.joda.JodaTimeAndroid
 import org.junit.Before
 import org.junit.After
 import org.junit.Test
@@ -36,12 +30,14 @@ class TimerScreenTest {
     private val taskExecutionManager = RealTaskExecutionManager()
     private val view = mockk<TimerView>(relaxed = true)
     private val userSelectedTasksRepository = RealUserSelectedTasksRepository()
-    val timerScreen = TimerScreen(TestTasksRepo(), userSelectedTasksRepository, taskExecutionManager, FakeDailyStatsProvider(), FakeToaster())
+    val tasksRepository = TestTasksRepo()
+    val timerScreen = TimerScreen(tasksRepository, userSelectedTasksRepository, taskExecutionManager, FakeDailyStatsProvider(), FakeToaster())
 
     @Before
     fun setup() {
         Dispatchers.setMain(testCoroutineDispactcher)
         timerScreen.view = view
+        userSelectedTasksRepository.clearTasks()
     }
 
     @After
@@ -115,7 +111,6 @@ class TimerScreenTest {
         assertThat(taskInProgress.id).isEqualTo(selectedTask2.id)
     }
 
-
     @Test
     fun `GIVEN working on last task selected by user WHEN finishing task THEN view state becomes initial`() = runBlockingTest {
         val selectedTask = Task(
@@ -135,12 +130,88 @@ class TimerScreenTest {
 
         val viewStateSlot = slot<TimerScreen.ViewState>()
         verify { view.setState(capture(viewStateSlot)) }
-        println("Yay")
+        assertThat(viewStateSlot.captured.timerState).isEqualTo(TimerScreen.TimerState.INITIAL)
     }
 
+    @Test
+    fun `GIVEN working on last task selected by user WHEN deferring task THEN view state becomes initial`() = runBlockingTest {
+        val selectedTask = Task(
+            id = "fake-id",
+            name = "Reading",
+            subtasks = null,
+            service = "toodledo",
+            lengthMins = 15
+        )
+        userSelectedTasksRepository.userSelectedTask(selectedTask)
+        timerScreen.subscribeData()
+        timerScreen.startTasks()
+
+        launch(testCoroutineDispactcher) {
+            timerScreen.deferTask()
+        }
+
+        val viewStateSlot = slot<TimerScreen.ViewState>()
+        verify { view.setState(capture(viewStateSlot)) }
+        assertThat(viewStateSlot.captured.timerState).isEqualTo(TimerScreen.TimerState.INITIAL)
+    }
+
+    @Test
+    fun `GIVEN working on last task in normal list WHEN completing task THEN view state becomes initial`() = runBlockingTest {
+        val lastTask = Task(
+            id = "fake-id",
+            name = "Reading",
+            subtasks = null,
+            service = "toodledo",
+            lengthMins = 15
+        )
+        tasksRepository.tasks = listOf(lastTask)
+        timerScreen.subscribeData()
+        timerScreen.startTasks()
+
+        launch(testCoroutineDispactcher) {
+            timerScreen.completeTask()
+        }
+
+        val viewStateSlot = slot<TimerScreen.ViewState>()
+        verify { view.setState(capture(viewStateSlot)) }
+        assertThat(viewStateSlot.captured.timerState).isEqualTo(TimerScreen.TimerState.INITIAL)
+    }
+
+
+    @Test
+    fun `GIVEN working on task in normal list WHEN completing task THEN starts next task immediately`() = runBlockingTest {
+        val currentTask = Task(
+            id = "fake-id",
+            name = "Reading",
+            subtasks = null,
+            service = "toodledo",
+            lengthMins = 15
+        )
+        val nextTask = Task(
+            id = "fake-id-2",
+            name = "Writing",
+            subtasks = null,
+            service = "habitica",
+            lengthMins = 25
+        )
+        tasksRepository.tasks = listOf(currentTask, nextTask)
+        timerScreen.subscribeData()
+        timerScreen.startTasks()
+
+        launch(testCoroutineDispactcher) {
+            timerScreen.completeTask()
+        }
+
+        val viewStateSlot = slot<TimerScreen.ViewState>()
+        verify { view.setState(capture(viewStateSlot)) }
+        assertThat(viewStateSlot.captured.timerState).isEqualTo(TimerScreen.TimerState.RUNNING)
+        val executingTask = (taskExecutionManager.currentTaskExecutionData.first() as TaskExecutionState.TaskRunning).task
+        assertThat(executingTask.id).isEqualTo(nextTask.id)
+    }
+    
 }
 
-private class FakeDailyStatsProvider(): DailyStatsSummaryProvider {
+private class FakeDailyStatsProvider: DailyStatsSummaryProvider {
     override val dailyStatsSummary: Flow<DailyStatsSummary>
         get() = flowOf(
             DailyStatsSummary(

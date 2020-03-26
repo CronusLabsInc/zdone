@@ -40,4 +40,9 @@ class RealUserSelectedTasksRepository @Inject constructor() : UserSelectedTasksR
         _userSelectedTasks.remove(task)
         _dataPublisher.onNext(_userSelectedTasks.toList())
     }
+
+    fun clearTasks() {
+        _userSelectedTasks.clear()
+        _dataPublisher.onNext(_userSelectedTasks.toList())
+    }
 }
