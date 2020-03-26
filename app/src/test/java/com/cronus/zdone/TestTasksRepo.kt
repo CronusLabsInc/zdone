@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 
 class TestTasksRepo : TasksRepository {
 
-    private val tasks = listOf(
+    var tasks = listOf(
         Task("abcd", "Anki", null, "habitica", 15)
     )
     private val timeProgress = TimeProgress(15, 85, 9999)
