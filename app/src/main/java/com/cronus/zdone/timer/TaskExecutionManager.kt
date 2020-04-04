@@ -3,6 +3,7 @@ package com.cronus.zdone.timer
 import android.util.Log
 import com.cronus.zdone.api.TasksRepository
 import com.cronus.zdone.api.model.Task
+import com.cronus.zdone.notification.TaskNotificationManager
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -67,10 +68,12 @@ class RealTaskExecutionManager @Inject constructor() : TaskExecutionManager {
     }
 
     private suspend fun startTask(task: Task) {
-        _currentTaskExecutionData.onNext(
-            TaskExecutionState.TaskRunning(task, task.lengthMins * 60L)
-        )
-        currentTaskJob = CoroutineScope(Dispatchers.Default).launch {
+        emitTaskStarted(task)
+        currentTaskJob = startTaskTimer(task)
+    }
+
+    private suspend fun startTaskTimer(task: Task): Job {
+        return CoroutineScope(Dispatchers.Default).launch {
             TaskTimerFactory().ofFlow(task.lengthMins)
                 .map { timeRemaining ->
                     _currentTaskExecutionData.onNext(
@@ -79,6 +82,12 @@ class RealTaskExecutionManager @Inject constructor() : TaskExecutionManager {
                 }
                 .collect()
         }
+    }
+
+    private fun emitTaskStarted(task: Task) {
+        _currentTaskExecutionData.onNext(
+            TaskExecutionState.TaskRunning(task, task.lengthMins * 60L)
+        )
     }
 }
 

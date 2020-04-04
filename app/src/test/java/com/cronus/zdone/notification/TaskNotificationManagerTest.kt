@@ -1,23 +1,22 @@
 package com.cronus.zdone.notification
 
 import com.cronus.zdone.api.model.Task
-import com.cronus.zdone.timer.FakeTaskExecutionManager
 import com.cronus.zdone.timer.TaskExecutionState
 import com.google.common.truth.Truth.assertThat
-import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 
 class TaskNotificationManagerTest {
 
     private val notificationShower = FakeNotificationShower()
-    private var taskNotificationManager = TaskNotificationManager(notificationShower)
+    private val buzzer = FakeTaskFinishedBuzzer()
+    private var taskNotificationManager = TaskNotificationManager(notificationShower, buzzer)
+
+    @Before
+    fun setup() {
+        notificationShower.isNotificationShowing = false
+        buzzer.buzzed = false
+    }
 
     @Test
     fun `GIVEN waiting for tasks WHEN receiving task state THEN clear notifications`() {
@@ -39,6 +38,31 @@ class TaskNotificationManagerTest {
         taskNotificationManager.handleTaskExecutionState(TaskExecutionState.TaskRunning(exampleTask, 0))
 
         assertThat(notificationShower.isNotificationShowing).isEqualTo(true)
+    }
+
+    @Test
+    fun `GIVEN no time remaining in task WHEN receiving task data THEN buzz`() {
+        val exampleTask = Task("fake-id", "reading", null, "habitica", 30)
+        taskNotificationManager.handleTaskExecutionState(TaskExecutionState.TaskRunning(exampleTask, 0))
+
+        assertThat(buzzer.buzzed).isTrue()
+    }
+
+    @Test
+    fun `GIVEN some time remaining in task WHEN receiving task data THEN don't buzz`() {
+        val exampleTask = Task("fake-id", "reading", null, "habitica", 30)
+        taskNotificationManager.handleTaskExecutionState(TaskExecutionState.TaskRunning(exampleTask, 1))
+
+        assertThat(buzzer.buzzed).isFalse()
+    }
+
+}
+
+class FakeTaskFinishedBuzzer : TaskFinishedBuzzer {
+    var buzzed = false
+
+    override fun buzz() {
+        buzzed = true
     }
 
 }
