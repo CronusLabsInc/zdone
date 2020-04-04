@@ -1,6 +1,7 @@
 package com.cronus.zdone.dagger
 
 import android.content.Context
+import android.os.Vibrator
 import androidx.room.Room
 import androidx.room.migration.Migration
 import com.cronus.zdone.BuildConfig
@@ -10,6 +11,8 @@ import com.cronus.zdone.RealUserPreferences
 import com.cronus.zdone.Toaster
 import com.cronus.zdone.UserPreferences
 import com.cronus.zdone.notification.OngoingNotificationShower
+import com.cronus.zdone.notification.RealTaskFinishedBuzzer
+import com.cronus.zdone.notification.TaskFinishedBuzzer
 import com.cronus.zdone.notification.TaskNotificationShower
 import com.cronus.zdone.stats.TaskEventsDatabase
 import com.cronus.zdone.stats.fake.FakeTaskEventsDao
@@ -51,6 +54,9 @@ class AndroidModule(val context: Context) {
         taskEventsDatabase.taskEventsDao()
 //        if (BuildConfig.DEBUG) FakeTaskEventsDao() else taskEventsDatabase.taskEventsDao()
 
+    @Provides
+    fun vibrator(context: Context): Vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
     @Module
     interface Bindings {
 
@@ -59,6 +65,10 @@ class AndroidModule(val context: Context) {
 
         @Binds
         fun userPreferences(realUserPreferences: RealUserPreferences): UserPreferences
+
+        @Binds
+        @Singleton
+        fun taskFinishedBuzzer(realTaskFinishedBuzzer: RealTaskFinishedBuzzer): TaskFinishedBuzzer
 
     }
 
